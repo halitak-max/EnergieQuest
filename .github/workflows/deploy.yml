@@ -1,0 +1,118 @@
+name: Deploy to Hetzner
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, bcmath, intl, gd, xml, curl
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Composer Dependencies (Production)
+      run: composer install --no-dev --optimize-autoloader --prefer-dist
+
+    - name: Build Frontend Assets
+      run: |
+        npm ci
+        npm run build
+
+    - name: Prepare Release Directory
+      run: |
+        # Erstelle Ordnerstruktur
+        mkdir -p release/energiequest
+
+        # Kopiere Projektdateien in den Unterordner (alles außer release, .git, etc.)
+        # Wir nutzen rsync lokal für sauberes Kopieren inkl. hidden files (außer .git)
+        rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='release' ./ release/energiequest/
+
+        # Verschiebe public Inhalt ins Root des Release-Ordners
+        mv release/energiequest/public/* release/
+        
+        # Kopiere .htaccess aus public ebenfalls (falls mv * das .htaccess nicht erwischt hat, oft in Shells so)
+        # Bei globbing * werden dotfiles oft ignoriert, daher explizit prüfen/kopieren
+        if [ -f release/energiequest/public/.htaccess ]; then
+            mv release/energiequest/public/.htaccess release/
+        fi
+
+        # Entferne den jetzt leeren public Ordner
+        rm -rf release/energiequest/public
+
+        # Erstelle Sicherheits-.htaccess im energiequest Ordner
+        echo "Deny from all" > release/energiequest/.htaccess
+
+    - name: Modify index.php paths
+      run: |
+        # Passe Pfade an, da der Code nun im Unterordner liegt
+        sed -i "s|/../vendor/autoload.php|/energiequest/vendor/autoload.php|g" release/index.php
+        sed -i "s|/../bootstrap/app.php|/energiequest/bootstrap/app.php|g" release/index.php
+        sed -i "s|/../storage/framework/maintenance.php|/energiequest/storage/framework/maintenance.php|g" release/index.php
+
+        # Setze den Public Path explizit auf das aktuelle Verzeichnis (public_html)
+        sed -i "/bootstrap\/app.php';/a \$app->usePublicPath(__DIR__);" release/index.php
+
+    - name: Deploy via RSYNC
+      uses: easingthemes/ssh-deploy@v5.0.0
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        ARGS: "-rlgoDzvc -i --delete"
+        SOURCE: "release/"
+        REMOTE_HOST: ${{ secrets.SSH_HOST }}
+        REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+        # ZIEL-PFAD ANPASSEN: Hetzner Standardpfad oft /usr/www/users/USERNAME/public_html/
+        # Wir nutzen hier public_html/ relativ zum Home-Verzeichnis des Users
+        TARGET: "public_html/" 
+
+    - name: Post-Deployment Commands
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd public_html/energiequest
+          
+          # Verlinke Storage (falls noch nicht vorhanden)
+          if [ ! -L storage/app/public ]; then
+             # Hinweis: Der relative Link kann tricky sein, wir versuchen artisan storage:link
+             # Aber wir müssen sicherstellen, dass wir im richtigen Kontext sind.
+             # Da wir die Ordnerstruktur geändert haben, kann der Standard artisan storage:link Befehl 
+             # den Link evtl. falsch setzen (er erwartet public/storage).
+             # Wir erstellen den Link manuell, wenn er fehlt.
+             
+             # Ziel: ../storage (im public_html root) -> energiequest/storage/app/public
+             # Aber artisan storage:link macht: public/storage -> storage/app/public
+             
+             # Wir nutzen artisan, aber wir müssen sicherstellen, dass der Link im public_html landet.
+             # Da wir index.php im public_html haben, ist das quasi unser "public".
+             # Einfacher: Wir machen es manuell per ln -s
+             
+             cd .. # zurück zu public_html
+             if [ ! -L storage ]; then
+                ln -s energiequest/storage/app/public storage
+             fi
+             cd energiequest
+          fi
+
+          # Caches leeren und neu aufbauen
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          
+          # Migrationen ausführen
+          php artisan migrate --force
+
