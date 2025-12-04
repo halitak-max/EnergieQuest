@@ -1,0 +1,150 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Gutscheine & Level') }}
+        </h2>
+    </x-slot>
+
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="container" style="max-width: 100%;">
+
+                <!-- Header Stats -->
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold">Gutscheine & Level</h2>
+                </div>
+
+                <!-- Level Card -->
+                <div class="card bg-white p-6 rounded shadow mb-6">
+                    <div class="level-info flex justify-between items-center mb-4">
+                        <div>
+                            <div class="text-sm text-gray-500 uppercase tracking-wide font-semibold">Aktuelles Level</div>
+                            <div class="text-4xl font-bold text-gray-800">{{ $currentLevel }}</div>
+                        </div>
+                        <div class="text-4xl text-yellow-500">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-labels flex justify-between mb-1 text-sm">
+                            <span>Fortschritt zu Level {{ $nextLevel ? ($currentLevel + 1) : 'MAX' }}</span>
+                            <span>
+                                @if($nextLevel)
+                                    {{ $approvedCount - $levels[$currentLevel]['required'] }}/{{ $nextLevel['required'] - $levels[$currentLevel]['required'] }} Empfehlungen
+                                @else
+                                    Max
+                                @endif
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $progress }}%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            @if($nextLevel)
+                                Noch {{ $nextLevel['required'] - $approvedCount }} genehmigte Empfehlung(en) bis Level {{ $currentLevel + 1 }}
+                            @else
+                                Maximales Level erreicht!
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Voucher Card -->
+                <div class="card bg-white p-6 rounded shadow mb-6 text-center">
+                    <div>
+                        <div class="text-gray-500 text-sm">Gesamte Gutscheine verdient</div>
+                        <div class="text-4xl font-bold text-blue-600 mt-2">{{ $earnedTotal }}€</div>
+                    </div>
+                </div>
+
+                <!-- Level Overview -->
+                <div>
+                    <h3 class="text-lg font-bold text-center mb-4">Level-Übersicht</h3>
+                    <div class="level-timeline space-y-4">
+                        @foreach($levels as $level)
+                            @php
+                                $isActive = $level['level'] === $currentLevel;
+                                $isPassed = $level['level'] < $currentLevel;
+                                $chestImage = ($isActive || $isPassed) ? asset('assets/offene_truhe.png') : asset('assets/geschlossene_truhe.jpeg');
+                                $statusClass = $isActive ? 'border-blue-500 bg-green-50' : 'border-gray-200 bg-white';
+                            @endphp
+
+                            <div class="level-item relative border rounded-xl p-4 {{ $statusClass }}">
+                                <div class="flex justify-between items-center">
+                                    <div class="level-left flex gap-4 items-center">
+                                        <div class="w-16 h-16 flex-shrink-0">
+                                            <img src="{{ $chestImage }}" alt="Truhe" class="w-full h-full object-contain">
+                                        </div>
+                                        
+                                        <div class="level-info-text">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="font-bold text-gray-800">Level {{ $level['level'] }}</h4>
+                                                @if($isActive)
+                                                    <span class="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">Aktuell</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-sm text-gray-500">{{ $level['label'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="level-right text-right">
+                                        @if($isPassed)
+                                            <i class="fa-solid fa-check text-green-500 text-xl"></i>
+                                        @else
+                                            <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
+                                            @if($level['value'] > 0)
+                                                <div class="text-xs text-gray-500">Gutschein</div>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div class="card bg-white p-6 rounded shadow mt-6 flex gap-4 items-start">
+                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 text-gray-500">
+                        <i class="fa-regular fa-circle-question"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-1">Wie verdiene ich Gutscheine?</h4>
+                        <p class="text-sm text-gray-600">
+                            Für jeden erfolgreich abgeschlossenen Tarifwechsel einer empfohlenen Person erhalte ich Punkte. Je mehr Empfehlungen, desto höher mein Level und desto mehr Gutscheine kann ich freischalten!
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
+        <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-house nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="{{ route('empfehlungen') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('empfehlungen') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-user-plus nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Empfehlungen</span>
+        </a>
+        <a href="{{ route('gutscheine') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('gutscheine') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-ticket nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Gutscheine</span>
+        </a>
+        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-cloud-arrow-up nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Uploads</span>
+        </a>
+        <a href="{{ route('profile.edit') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('profile.edit') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-regular fa-user nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Profil</span>
+        </a>
+    </nav>
+</x-app-layout>
+
