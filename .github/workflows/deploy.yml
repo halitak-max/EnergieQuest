@@ -31,86 +31,114 @@ jobs:
         npm ci
         npm run build
 
-    - name: Prepare Deployment Structure
+    - name: Prepare and Zip Artifacts
       run: |
-        # Erstelle temporären Ordner für den Upload
+        # Struktur vorbereiten
         mkdir -p deployment/energiequest
         mkdir -p deployment/public_html
 
-        # 1. Kopiere das gesamte Projekt (außer public) nach deployment/energiequest
+        # Core kopieren
         rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='deployment' --exclude='public' ./ deployment/energiequest/
-
-        # 2. Kopiere den Inhalt von public nach deployment/public_html
-        # Das entspricht dem Wunsch: public Inhalt in public_html kopieren
+        
+        # Public kopieren
         cp -r public/. deployment/public_html/
 
-        # 3. Passe index.php an
-        # Pfade zeigen jetzt auf ../energiequest (da public_html und energiequest auf gleicher Ebene liegen)
+        # Index.php anpassen
         sed -i "s|/../vendor/autoload.php|/../energiequest/vendor/autoload.php|g" deployment/public_html/index.php
         sed -i "s|/../bootstrap/app.php|/../energiequest/bootstrap/app.php|g" deployment/public_html/index.php
         sed -i "s|/../storage/framework/maintenance.php|/../energiequest/storage/framework/maintenance.php|g" deployment/public_html/index.php
-        
-        # Setze Public Path Fix
         sed -i "/bootstrap\/app.php';/a \$app->usePublicPath(__DIR__);" deployment/public_html/index.php
 
-        # 4. Erstelle deploy-tasks.php on-the-fly (für Migrationen ohne SSH)
-        # Wir erstellen die Datei direkt hier, damit sie nicht im Repo liegen muss.
-        cat <<EOF > deployment/public_html/deploy-tasks.php
+        # ZIPPEN
+        # Core Zip
+        cd deployment/energiequest
+        zip -r ../../core.zip .
+        cd ../..
+
+        # Public Zip
+        cd deployment/public_html
+        zip -r ../../public.zip .
+        cd ../..
+
+        # Unzip-Script erstellen (Lädt Zips, entpackt sie und führt Tasks aus)
+        cat <<EOF > deployment/unzip_and_migrate.php
         <?php
         \$secretKey = '${{ secrets.DEPLOY_KEY }}';
         if (!isset(\$_GET['key']) || \$_GET['key'] !== \$secretKey) {
             http_response_code(403);
             die('Access denied.');
         }
+
+        echo "<h1>Deployment Log</h1><pre>";
+
+        function unzip(\$file, \$path) {
+            if (!file_exists(\$file)) {
+                echo "File \$file not found, skipping.\\n";
+                return;
+            }
+            echo "Unzipping \$file to \$path... ";
+            \$zip = new ZipArchive;
+            if (\$zip->open(\$file) === TRUE) {
+                if (!is_dir(\$path)) mkdir(\$path, 0755, true);
+                \$zip->extractTo(\$path);
+                \$zip->close();
+                echo "OK.\\n";
+                unlink(\$file); // Zip löschen
+                echo "Zip deleted.\\n";
+            } else {
+                echo "FAILED.\\n";
+            }
+        }
+
+        // 1. Unzip Core (liegt eine Ebene höher, also ../energiequest)
+        // Wir gehen davon aus, dass wir im public_html Root sind
+        
+        unzip(__DIR__ . '/core.zip', __DIR__ . '/../energiequest');
+        unzip(__DIR__ . '/public.zip', __DIR__);
+
+        // 2. Laravel Tasks
         require __DIR__ . '/../energiequest/vendor/autoload.php';
         \$app = require_once __DIR__ . '/../energiequest/bootstrap/app.php';
         \$kernel = \$app->make(Illuminate\Contracts\Http\Kernel::class);
         \$response = \$kernel->handle(\$request = Illuminate\Http\Request::capture());
+
+        echo "\\n--- Artisan Tasks ---\\n";
         
-        echo "<h1>Tasks</h1>";
         function run(\$cmd) {
             try {
-                echo "Running: \$cmd<br>";
+                echo "Running: \$cmd\\n";
                 \Illuminate\Support\Facades\Artisan::call(\$cmd);
-                echo "<pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre><hr>";
+                echo \Illuminate\Support\Facades\Artisan::output() . "\\n";
             } catch (\Exception \$e) {
-                echo "<div style='color:red'>Error: " . \$e->getMessage() . "</div><hr>";
+                echo "Error: " . \$e->getMessage() . "\\n";
             }
         }
         
-        // Storage Link (wichtig: manuell, da artisan link oft relative pfade falsch macht)
+        // Storage Link
         if (!file_exists(__DIR__ . '/storage')) {
            symlink(__DIR__ . '/../energiequest/storage/app/public', __DIR__ . '/storage');
-           echo "Storage linked.<hr>";
+           echo "Storage linked.\\n";
         }
         
         run('migrate --force');
         run('config:cache');
         run('route:cache');
         run('view:cache');
-        echo "Done.";
+        
+        echo "\\nDeployment finished successfully.</pre>";
         EOF
 
-    - name: Install LFTP
+    - name: Install LFTP and Zip
       run: |
         sudo apt-get update
-        sudo apt-get install -y lftp
+        sudo apt-get install -y lftp zip
 
-    - name: Deploy Core via LFTP
+    - name: Upload Zips and Script via LFTP
       run: |
-        # LFTP Settings:
-        # ssl:verify-certificate no: Verhindert Probleme mit Zertifikatsketten
-        # ftp:ssl-allow yes: Erlaubt SSL
-        # ftp:ssl-force true: Erzwingt SSL (wichtig für Hetzner)
-        # mirror -R: Reverse Mirror (Upload)
-        # --parallel=2: Nutzt 2 parallele Verbindungen für Speed
-        
-        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; mirror -R --parallel=2 --verbose --exclude .git/ --exclude node_modules/ --exclude storage/*.key ./deployment/energiequest/ /energiequest/; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
+        # Wir laden alles in public_html hoch. Das Unzip-Script sortiert es dann ein.
+        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; put core.zip; put public.zip; put deployment/unzip_and_migrate.php; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
 
-    - name: Deploy Public via LFTP
+    - name: Trigger Unzip and Migration
       run: |
-        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; mirror -R --parallel=2 --verbose --exclude .git/ --exclude node_modules/ --exclude storage/*.key ./deployment/public_html/ /public_html/; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
-
-    - name: Trigger Post-Deployment Tasks
-      run: |
-        curl -s -f --retry 3 "https://laravel.energiequest.de/deploy-tasks.php?key=${{ secrets.DEPLOY_KEY }}"
+        # Timeout erhöht (300s), da Entpacken dauern kann
+        curl -s -f --max-time 300 --retry 3 "https://energiequest.de/unzip_and_migrate.php?key=${{ secrets.DEPLOY_KEY }}"
