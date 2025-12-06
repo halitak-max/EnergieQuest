@@ -98,6 +98,7 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         protocol: ftps
+        ignore-data-protection: true
         local-dir: ./deployment/energiequest/
         server-dir: /energiequest/
         exclude: |
@@ -113,6 +114,7 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         protocol: ftps
+        ignore-data-protection: true
         local-dir: ./deployment/public_html/
         server-dir: /public_html/
         exclude: |
