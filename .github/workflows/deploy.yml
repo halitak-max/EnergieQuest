@@ -135,10 +135,13 @@ jobs:
 
     - name: Upload Zips and Script via LFTP
       run: |
-        # Wir laden alles in public_html hoch. Das Unzip-Script sortiert es dann ein.
-        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; put core.zip; put public.zip; put deployment/unzip_and_migrate.php; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
+        # Wir laden die Zips in das Root (oder public_html) und das Script explizit nach public_html
+        # Damit es per Browser aufrufbar ist.
+        # Annahme: Web-Root ist /public_html/
+        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; put core.zip; put public.zip; put -O /public_html/ deployment/unzip_and_migrate.php; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
 
     - name: Trigger Unzip and Migration
       run: |
-        # Timeout erhöht (300s), da Entpacken dauern kann
-        curl -s -f --max-time 300 --retry 3 "https://energiequest.de/unzip_and_migrate.php?key=${{ secrets.DEPLOY_KEY }}"
+        # Timeout erhöht (300s), da Entpacken dauern kann. -L folgt Redirects.
+        echo "Triggering deployment script..."
+        curl -s -L --max-time 300 --retry 3 "https://energiequest.de/unzip_and_migrate.php?key=${{ secrets.DEPLOY_KEY }}"
