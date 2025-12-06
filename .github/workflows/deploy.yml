@@ -1,4 +1,4 @@
-name: Deploy to Hetzner
+name: Deploy to Hetzner (FTP)
 
 on:
   push:
@@ -31,88 +31,94 @@ jobs:
         npm ci
         npm run build
 
-    - name: Prepare Release Directory
+    - name: Prepare Deployment Structure
       run: |
-        # Erstelle Ordnerstruktur
-        mkdir -p release/energiequest
+        # Erstelle temporären Ordner für den Upload
+        mkdir -p deployment/energiequest
+        mkdir -p deployment/public_html
 
-        # Kopiere Projektdateien in den Unterordner (alles außer release, .git, etc.)
-        # Wir nutzen rsync lokal für sauberes Kopieren inkl. hidden files (außer .git)
-        rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='release' ./ release/energiequest/
+        # 1. Kopiere das gesamte Projekt (außer public) nach deployment/energiequest
+        rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='deployment' --exclude='public' ./ deployment/energiequest/
 
-        # Verschiebe public Inhalt ins Root des Release-Ordners
-        mv release/energiequest/public/* release/
+        # 2. Kopiere den Inhalt von public nach deployment/public_html
+        # Das entspricht dem Wunsch: public Inhalt in public_html kopieren
+        cp -r public/. deployment/public_html/
+
+        # 3. Passe index.php an
+        # Pfade zeigen jetzt auf ../energiequest (da public_html und energiequest auf gleicher Ebene liegen)
+        sed -i "s|/../vendor/autoload.php|/../energiequest/vendor/autoload.php|g" deployment/public_html/index.php
+        sed -i "s|/../bootstrap/app.php|/../energiequest/bootstrap/app.php|g" deployment/public_html/index.php
+        sed -i "s|/../storage/framework/maintenance.php|/../energiequest/storage/framework/maintenance.php|g" deployment/public_html/index.php
         
-        # Kopiere .htaccess aus public ebenfalls (falls mv * das .htaccess nicht erwischt hat, oft in Shells so)
-        # Bei globbing * werden dotfiles oft ignoriert, daher explizit prüfen/kopieren
-        if [ -f release/energiequest/public/.htaccess ]; then
-            mv release/energiequest/public/.htaccess release/
-        fi
+        # Setze Public Path Fix
+        sed -i "/bootstrap\/app.php';/a \$app->usePublicPath(__DIR__);" deployment/public_html/index.php
 
-        # Entferne den jetzt leeren public Ordner
-        rm -rf release/energiequest/public
+        # 4. Erstelle deploy-tasks.php on-the-fly (für Migrationen ohne SSH)
+        # Wir erstellen die Datei direkt hier, damit sie nicht im Repo liegen muss.
+        cat <<EOF > deployment/public_html/deploy-tasks.php
+        <?php
+        \$secretKey = '${{ secrets.DEPLOY_KEY }}';
+        if (!isset(\$_GET['key']) || \$_GET['key'] !== \$secretKey) {
+            http_response_code(403);
+            die('Access denied.');
+        }
+        require __DIR__ . '/../energiequest/vendor/autoload.php';
+        \$app = require_once __DIR__ . '/../energiequest/bootstrap/app.php';
+        \$kernel = \$app->make(Illuminate\Contracts\Http\Kernel::class);
+        \$response = \$kernel->handle(\$request = Illuminate\Http\Request::capture());
+        
+        echo "<h1>Tasks</h1>";
+        function run(\$cmd) {
+            try {
+                echo "Running: \$cmd<br>";
+                \Illuminate\Support\Facades\Artisan::call(\$cmd);
+                echo "<pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre><hr>";
+            } catch (\Exception \$e) {
+                echo "<div style='color:red'>Error: " . \$e->getMessage() . "</div><hr>";
+            }
+        }
+        
+        // Storage Link (wichtig: manuell, da artisan link oft relative pfade falsch macht)
+        if (!file_exists(__DIR__ . '/storage')) {
+           symlink(__DIR__ . '/../energiequest/storage/app/public', __DIR__ . '/storage');
+           echo "Storage linked.<hr>";
+        }
+        
+        run('migrate --force');
+        run('config:cache');
+        run('route:cache');
+        run('view:cache');
+        echo "Done.";
+        EOF
 
-        # Erstelle Sicherheits-.htaccess im energiequest Ordner
-        echo "Deny from all" > release/energiequest/.htaccess
+    - name: Deploy Core to energiequest folder
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./deployment/energiequest/
+        server-dir: /energiequest/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/storage/*.key
 
-    - name: Modify index.php paths
+    - name: Deploy Public to public_html folder
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./deployment/public_html/
+        server-dir: /public_html/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/storage/*.key
+
+    - name: Trigger Post-Deployment Tasks
       run: |
-        # Passe Pfade an, da der Code nun im Unterordner liegt
-        sed -i "s|/../vendor/autoload.php|/energiequest/vendor/autoload.php|g" release/index.php
-        sed -i "s|/../bootstrap/app.php|/energiequest/bootstrap/app.php|g" release/index.php
-        sed -i "s|/../storage/framework/maintenance.php|/energiequest/storage/framework/maintenance.php|g" release/index.php
-
-        # Setze den Public Path explizit auf das aktuelle Verzeichnis (public_html)
-        sed -i "/bootstrap\/app.php';/a \$app->usePublicPath(__DIR__);" release/index.php
-
-    - name: Deploy via RSYNC
-      uses: easingthemes/ssh-deploy@v5.0.0
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        ARGS: "-rlgoDzvc -i --delete"
-        SOURCE: "release/"
-        REMOTE_HOST: ${{ secrets.SSH_HOST }}
-        REMOTE_USER: ${{ secrets.SSH_USERNAME }}
-        # ZIEL-PFAD ANPASSEN: Hetzner Standardpfad oft /usr/www/users/USERNAME/public_html/
-        # Wir nutzen hier public_html/ relativ zum Home-Verzeichnis des Users
-        TARGET: "public_html/" 
-
-    - name: Post-Deployment Commands
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd public_html/energiequest
-          
-          # Verlinke Storage (falls noch nicht vorhanden)
-          if [ ! -L storage/app/public ]; then
-             # Hinweis: Der relative Link kann tricky sein, wir versuchen artisan storage:link
-             # Aber wir müssen sicherstellen, dass wir im richtigen Kontext sind.
-             # Da wir die Ordnerstruktur geändert haben, kann der Standard artisan storage:link Befehl 
-             # den Link evtl. falsch setzen (er erwartet public/storage).
-             # Wir erstellen den Link manuell, wenn er fehlt.
-             
-             # Ziel: ../storage (im public_html root) -> energiequest/storage/app/public
-             # Aber artisan storage:link macht: public/storage -> storage/app/public
-             
-             # Wir nutzen artisan, aber wir müssen sicherstellen, dass der Link im public_html landet.
-             # Da wir index.php im public_html haben, ist das quasi unser "public".
-             # Einfacher: Wir machen es manuell per ln -s
-             
-             cd .. # zurück zu public_html
-             if [ ! -L storage ]; then
-                ln -s energiequest/storage/app/public storage
-             fi
-             cd energiequest
-          fi
-
-          # Caches leeren und neu aufbauen
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          
-          # Migrationen ausführen
-          php artisan migrate --force
-
+        curl -s -f --retry 3 "https://laravel.energiequest.de/deploy-tasks.php?key=${{ secrets.DEPLOY_KEY }}"
