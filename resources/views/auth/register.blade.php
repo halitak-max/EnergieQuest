@@ -46,6 +46,15 @@
             <x-input-error :messages="$errors->get('referral_code')" class="mt-2" />
         </div>
 
+        <!-- Privacy Policy Checkbox -->
+        <div class="mt-4 block">
+            <label for="privacy_policy" class="inline-flex items-center">
+                <input id="privacy_policy" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="privacy_policy" required>
+                <span class="ml-2 text-sm text-gray-600">{{ __('Ich akzeptiere die') }} <a target="_blank" href="{{ route('datenschutz') }}" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">{{ __('Datenschutzerklärung') }}</a></span>
+            </label>
+            <x-input-error :messages="$errors->get('privacy_policy')" class="mt-2" />
+        </div>
+
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
                 {{ __('Already registered?') }}
