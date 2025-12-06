@@ -91,37 +91,25 @@ jobs:
         echo "Done.";
         EOF
 
-    - name: Deploy Core to energiequest folder
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        protocol: ftps
-        ignore-data-protection: true
-        local-dir: ./deployment/energiequest/
-        server-dir: /energiequest/
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/storage/*.key
+    - name: Install LFTP
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lftp
 
-    - name: Deploy Public to public_html folder
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        protocol: ftps
-        ignore-data-protection: true
-        local-dir: ./deployment/public_html/
-        server-dir: /public_html/
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/storage/*.key
+    - name: Deploy Core via LFTP
+      run: |
+        # LFTP Settings:
+        # ssl:verify-certificate no: Verhindert Probleme mit Zertifikatsketten
+        # ftp:ssl-allow yes: Erlaubt SSL
+        # ftp:ssl-force true: Erzwingt SSL (wichtig für Hetzner)
+        # mirror -R: Reverse Mirror (Upload)
+        # --parallel=2: Nutzt 2 parallele Verbindungen für Speed
+        
+        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; mirror -R --parallel=2 --verbose --exclude .git/ --exclude node_modules/ --exclude storage/*.key ./deployment/energiequest/ /energiequest/; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
+
+    - name: Deploy Public via LFTP
+      run: |
+        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; mirror -R --parallel=2 --verbose --exclude .git/ --exclude node_modules/ --exclude storage/*.key ./deployment/public_html/ /public_html/; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
 
     - name: Trigger Post-Deployment Tasks
       run: |
