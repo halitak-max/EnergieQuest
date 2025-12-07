@@ -1,186 +1,58 @@
-name: Deploy to Hetzner (FTP)
+name: Deploy to Hetzner
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency: deploy_prod
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: mbstring, bcmath, intl, gd, xml, curl
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Install Composer Dependencies (Production)
-      run: composer install --no-dev --optimize-autoloader --prefer-dist
+      - name: Deploy to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          APP_PATH: ${{ secrets.DEPLOY_PATH }} # z.B. /var/www/laravel
+          PHP_FPM_SERVICE: ${{ secrets.PHP_FPM_SERVICE }} # optional, z.B. php8.2-fpm
+        run: |
+          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<'EOF'
+          set -e
+          cd $APP_PATH
 
-    - name: Build Frontend Assets
-      run: |
-        npm ci
-        npm run build
+          # Code holen
+          git pull origin main
 
-    - name: Prepare and Zip Artifacts
-      run: |
-        # Wir zippen das gesamte Projekt (inkl. public) in eine einzige Datei
-        # Exclude: git, github, node_modules (wird nicht gebraucht für Prod, assets sind gebaut), deployment folder
-        # Zip excludes: .git, .github, node_modules (dev-deps), tests, storage/*.key
-        zip -r core.zip . -x ".git/*" ".github/*" "node_modules/*" "deployment/*" "tests/*" "storage/*.key"
+          # PHP-Abhängigkeiten
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-        # Unzip-Script erstellen
-        mkdir -p deployment
-        cat <<EOF > deployment/unzip_and_deploy.php
-        <?php
-        \$secretKey = '${{ secrets.DEPLOY_KEY }}';
-        if (!isset(\$_GET['key']) || \$_GET['key'] !== \$secretKey) {
-            http_response_code(403);
-            die('Access denied.');
-        }
+          # Frontend bauen (erfordert Node auf dem Server)
+          npm ci
+          npm run build
 
-        echo "<h1>Deployment Log</h1><pre>";
-        set_time_limit(300); // 5 Minuten Timeout
+          # Datenbank-Migrationen
+          php artisan migrate --force
 
-        // Pfade definieren (Annahme: Script liegt in public_html/)
-        \$baseDir = __DIR__ . '/../energiequest'; // Zielordner für Laravel Core
-        \$publicHtmlDir = __DIR__;               // public_html
-        \$zipFile = \$baseDir . '/core.zip';
+          # Caches optimieren
+          php artisan optimize
 
-        // 1. Unzip Core
-        if (file_exists(\$zipFile)) {
-            echo "Unzipping core.zip to \$baseDir... ";
-            \$zip = new ZipArchive;
-            if (\$zip->open(\$zipFile) === TRUE) {
-                // Extrahiere alles nach energiequest/
-                \$zip->extractTo(\$baseDir);
-                \$zip->close();
-                echo "OK.\\n";
-                unlink(\$zipFile);
-                echo "Zip deleted.\\n";
-            } else {
-                echo "FAILED to open zip.\\n";
-                die();
-            }
-        } else {
-            echo "No core.zip found in \$baseDir (maybe already unzipped?). Continuing...\\n";
-        }
-
-        // 2. Laravel Tasks (Migrate, Cache)
-        echo "\\n--- Running Artisan Tasks ---\\n";
-        // Wir müssen sicherstellen, dass der Autoloader gefunden wird
-        if (file_exists(\$baseDir . '/vendor/autoload.php')) {
-            require \$baseDir . '/vendor/autoload.php';
-            \$app = require_once \$baseDir . '/bootstrap/app.php';
-            \$kernel = \$app->make(Illuminate\Contracts\Http\Kernel::class);
-            \$response = \$kernel->handle(\$request = Illuminate\Http\Request::capture());
-
-            function run(\$cmd) {
-                try {
-                    echo "Running: \$cmd\\n";
-                    \Illuminate\Support\Facades\Artisan::call(\$cmd);
-                    echo \Illuminate\Support\Facades\Artisan::output() . "\\n";
-                } catch (\Exception \$e) {
-                    echo "Error: " . \$e->getMessage() . "\\n";
-                }
-            }
-            
-            run('migrate --force');
-            run('config:cache');
-            run('route:cache');
-            run('view:cache');
-        } else {
-             echo "Error: Autoload not found at " . \$baseDir . '/vendor/autoload.php';
-        }
-
-        // 3. Public Ordner Inhalt nach public_html kopieren
-        echo "\\n--- Syncing Public Folder ---\\n";
-        \$sourcePublic = \$baseDir . '/public';
-        
-        function recurseCopy(\$src, \$dst) { 
-            \$dir = opendir(\$src); 
-            @mkdir(\$dst); 
-            while(false !== ( \$file = readdir(\$dir)) ) { 
-                if (( \$file != '.' ) && ( \$file != '..' )) { 
-                    if ( is_dir(\$src . '/' . \$file) ) { 
-                        recurseCopy(\$src . '/' . \$file, \$dst . '/' . \$file); 
-                    } else { 
-                        copy(\$src . '/' . \$file, \$dst . '/' . \$file); 
-                    } 
-                } 
-            } 
-            closedir(\$dir); 
-        }
-        
-        if (is_dir(\$sourcePublic)) {
-            recurseCopy(\$sourcePublic, \$publicHtmlDir);
-            echo "Public files synced to public_html.\\n";
-        } else {
-            echo "Error: Source public folder not found at \$sourcePublic\\n";
-        }
-
-        // 4. Index.php Anpassung
-        echo "\\n--- Patching index.php ---\\n";
-        \$indexFile = \$publicHtmlDir . '/index.php';
-        if (file_exists(\$indexFile)) {
-            \$content = file_get_contents(\$indexFile);
-            \$content = str_replace("require __DIR__.'/../vendor/autoload.php';", "require __DIR__.'/../energiequest/vendor/autoload.php';", \$content);
-            \$content = str_replace("\$app = require_once __DIR__.'/../bootstrap/app.php';", "\$app = require_once __DIR__.'/../energiequest/bootstrap/app.php';", \$content);
-            \$content = str_replace("__DIR__.'/../storage/framework/maintenance.php'", "__DIR__.'/../energiequest/storage/framework/maintenance.php'", \$content);
-            
-            if (!str_contains(\$content, 'usePublicPath')) {
-                 \$content = str_replace(
-                    "\$app = require_once __DIR__.'/../energiequest/bootstrap/app.php';",
-                    "\$app = require_once __DIR__.'/../energiequest/bootstrap/app.php';\n\$app->usePublicPath(__DIR__);",
-                    \$content
-                );
-            }
-            
-            file_put_contents(\$indexFile, \$content);
-            echo "index.php patched.\\n";
-        }
-
-        // 5. Storage Link
-        echo "\\n--- Checking Storage Link ---\\n";
-        \$link = \$publicHtmlDir . '/storage';
-        \$target = \$baseDir . '/storage/app/public';
-        
-        if (!file_exists(\$link)) {
-           if (symlink(\$target, \$link)) {
-               echo "Storage link created.\\n";
-           } else {
-               echo "Failed to create storage link.\\n";
-           }
-        } else {
-            echo "Storage link already exists.\\n";
-        }
-        
-        echo "\\nDEPLOYMENT FINISHED SUCCESSFULLY.</pre>";
-        EOF
-
-    - name: Install LFTP and Zip
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y lftp zip
-
-    - name: Upload Artifacts via LFTP
-      run: |
-        # 1. Upload core.zip nach /energiequest/ (muss existieren oder erstellt werden)
-        # 2. Upload script nach /public_html/
-        # WICHTIG: mkdir -p /energiequest kann fehlschlagen wenn Rechte fehlen, 
-        # aber wir versuchen es.
-        lftp -e "set ftp:ssl-auth TLS; set ftp:ssl-force true; set ssl:verify-certificate no; mkdir -p -f /energiequest; put -O /energiequest/ core.zip; put -O /public_html/ deployment/unzip_and_deploy.php; bye" -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }}
-
-    - name: Trigger Deployment Script
-      run: |
-        echo "Triggering deployment script..."
-        curl -s -L --max-time 300 --retry 3 "https://energiequest.de/unzip_and_deploy.php?key=${{ secrets.DEPLOY_KEY }}"
+          # PHP-FPM / Nginx neu laden (falls konfiguriert)
+          if [ -n "$PHP_FPM_SERVICE" ]; then
+            sudo systemctl reload "$PHP_FPM_SERVICE" || true
+          fi
+          sudo systemctl reload nginx || true
+          EOF
