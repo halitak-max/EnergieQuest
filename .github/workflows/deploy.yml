@@ -1,58 +1,99 @@
-name: Deploy to Hetzner
+name: Deploy to Hetzner VM
 
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
 
-concurrency: deploy_prod
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  APP_PATH: ${{ secrets.APP_PATH }} # e.g. /var/www/energiequest
+  NODE_VERSION: "18"
+  PHP_VERSION: "8.2"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Start SSH agent
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Trim build artifacts
+        run: |
+          rm -rf node_modules tests .git .github
+
+      - name: Add SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Add server to known_hosts
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
+      - name: Rsync to server
+        run: |
+          rsync -az --delete \
+            --exclude=".env" \
+            --exclude="storage/app/**" \
+            --exclude="storage/logs/**" \
+            --exclude="storage/framework/cache/**" \
+            --exclude="storage/framework/sessions/**" \
+            --exclude="storage/framework/testing/**" \
+            --exclude=".git" \
+            ${GITHUB_WORKSPACE}/ ${SSH_USER}@${SSH_HOST}:${APP_PATH}/
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
-          APP_PATH: ${{ secrets.DEPLOY_PATH }} # z.B. /var/www/laravel
-          PHP_FPM_SERVICE: ${{ secrets.PHP_FPM_SERVICE }} # optional, z.B. php8.2-fpm
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+
+      - name: Run remote deploy steps
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          PHP_FPM_SERVICE: ${{ secrets.PHP_FPM_SERVICE }}
         run: |
           ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<'EOF'
           set -e
-          cd $APP_PATH
+          cd ${APP_PATH}
 
-          # Code holen
-          git pull origin main
+          # Ensure permissions for cache/bootstrap
+          chown -R ${USER}:www-data storage bootstrap/cache
+          find storage bootstrap/cache -type d -exec chmod 775 {} \;
 
-          # PHP-Abhängigkeiten
-          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-          # Frontend bauen (erfordert Node auf dem Server)
-          npm ci
-          npm run build
-
-          # Datenbank-Migrationen
+          # Laravel tasks
           php artisan migrate --force
-
-          # Caches optimieren
           php artisan optimize
+          php artisan queue:restart || true
 
-          # PHP-FPM / Nginx neu laden (falls konfiguriert)
-          if [ -n "$PHP_FPM_SERVICE" ]; then
-            sudo systemctl reload "$PHP_FPM_SERVICE" || true
+          # Reload services
+          if [ -n "${PHP_FPM_SERVICE}" ]; then
+            sudo systemctl reload "${PHP_FPM_SERVICE}" || true
           fi
           sudo systemctl reload nginx || true
           EOF
+
