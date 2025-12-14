@@ -57,14 +57,6 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
 
-      - name: Debug SSH
-        run: |
-          ssh -vvv ${SSH_USER}@${SSH_HOST} "echo SSH OK"
-        env:
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-
-
       - name: Rsync to server
         run: |
           rsync -az --delete \
