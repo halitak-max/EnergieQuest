@@ -26,3 +26,7 @@ php artisan test
 - Deployment-Workflow: Nginx + PHP-FPM auf einer Hetzner Cloud VM, ohne Docker/CI.
 - Anleitung: siehe `docs/DEPLOY_HETZNER_VM.md`.
 - CI/CD: GitHub Actions Workflow in `.github/workflows/deploy.yml` deployt nach Hetzner (Rsync + SSH, Laravel Migrate/Optimize).
+
+## Deployment auf DigitalOcean Droplet
+- Anleitung: `docs/DEPLOY_DIGITALOCEAN_DROPLET.md` (Nginx + PHP-FPM).
+- CI/CD: `.github/workflows/deploy.yml` (Build auf Runner, rsync auf Droplet, `migrate/optimize`, Service-Reload).

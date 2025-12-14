@@ -1,4 +1,4 @@
-name: Deploy to Hetzner VM
+name: Deploy to DigitalOcean Droplet
 
 on:
   push:
@@ -13,6 +13,7 @@ env:
   APP_PATH: ${{ secrets.APP_PATH }} # e.g. /var/www/energiequest
   NODE_VERSION: "18"
   PHP_VERSION: "8.2"
+  SSH_PORT: ${{ secrets.SSH_PORT }}
 
 jobs:
   deploy:
@@ -54,12 +55,18 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Add server to known_hosts
-        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
+        run: |
+          PORT=${SSH_PORT:-22}
+          ssh-keyscan -p "$PORT" -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+        env:
+          SSH_PORT: ${{ env.SSH_PORT }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
 
       - name: Rsync to server
         run: |
-          rsync -az --delete \
+          PORT=${SSH_PORT:-22}
+          RSYNC_RSH="ssh -p ${PORT} -o StrictHostKeyChecking=no"
+          rsync -az --delete -e "${RSYNC_RSH}" \
             --exclude=".env" \
             --exclude="storage/app/**" \
             --exclude="storage/logs/**" \
@@ -71,14 +78,17 @@ jobs:
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ env.SSH_PORT }}
 
       - name: Run remote deploy steps
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ env.SSH_PORT }}
           PHP_FPM_SERVICE: ${{ secrets.PHP_FPM_SERVICE }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<'EOF'
+          PORT=${SSH_PORT:-22}
+          ssh -p ${PORT} -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<'EOF'
           set -e
           cd ${APP_PATH}
 
