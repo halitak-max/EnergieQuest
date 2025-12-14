@@ -134,7 +134,7 @@ Build läuft auf dem Runner, danach rsync auf das Droplet. Laravel-Migrationen/O
 - `SSH_HOST` – Droplet IP/Hostname
 - `SSH_PORT` – optional, Standard 22
 - `SSH_USER` – z. B. `deploy`
-- `SSH_KEY` – Private Key passend zu `authorized_keys`
+- `SSH_PASSWORD` – Passwort des Deploy-Users (nur falls Passwort-Auth aktiviert)
 - `APP_PATH` – z. B. `/var/www/energiequest`
 - `PHP_FPM_SERVICE` – z. B. `php8.2-fpm` (leer lassen, wenn nicht reloadet)
 
