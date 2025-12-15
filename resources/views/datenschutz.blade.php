@@ -155,5 +155,28 @@
             </div>
         </div>
     </div>
+
+    <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
+        <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-house nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="{{ route('empfehlungen') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('empfehlungen') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-user-plus nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Empfehlungen</span>
+        </a>
+        <a href="{{ route('gutscheine') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('gutscheine') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-ticket nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Gutscheine</span>
+        </a>
+        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-cloud-arrow-up nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Uploads</span>
+        </a>
+        <a href="{{ route('profile.edit') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('profile.edit') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-regular fa-user nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Profil</span>
+        </a>
+    </nav>
 </x-app-layout>
 
