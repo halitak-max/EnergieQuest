@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="py-12">
+    <div class="pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="container" style="max-width: 100%;">
 
@@ -70,7 +70,8 @@
                                 $isActive = $level['level'] === $currentLevel;
                                 $isPassed = $level['level'] < $currentLevel;
                                 $chestImage = ($isActive || $isPassed) ? asset('assets/offene_truhe.png') : asset('assets/geschlossene_truhe.jpeg');
-                                $statusClass = $isActive ? 'border-blue-500 bg-green-50' : 'border-gray-200 bg-white';
+                                $statusClass = ($isActive || $isPassed) ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white';
+                                if ($isActive) $statusClass = 'border-blue-500 bg-green-50 shadow-md'; 
                             @endphp
 
                             <div class="level-item relative border rounded-xl p-4 {{ $statusClass }}">
@@ -91,13 +92,9 @@
                                         </div>
                                     </div>
                                     <div class="level-right text-right">
-                                        @if($isPassed)
-                                            <i class="fa-solid fa-check text-green-500 text-xl"></i>
-                                        @else
-                                            <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
-                                            @if($level['value'] > 0)
-                                                <div class="text-xs text-gray-500">Gutschein</div>
-                                            @endif
+                                        <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
+                                        @if($level['value'] > 0)
+                                            <div class="text-xs text-gray-500">Gutschein</div>
                                         @endif
                                     </div>
                                 </div>

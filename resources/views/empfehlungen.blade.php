@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="py-12">
+    <div class="pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="container" style="max-width: 100%;">
 
@@ -27,7 +27,7 @@
                             <div class="stat-label text-sm text-gray-600">Erfolgreich</div>
                         </div>
                         <div class="stat-card bg-gray-50 p-4 rounded text-center">
-                            <div class="stat-value text-xl font-bold text-orange-500">{{ $stats['pending'] }}</div>
+                            <div class="stat-value text-xl font-bold" style="color: #f97316;">{{ $stats['pending'] }}</div>
                             <div class="stat-label text-sm text-gray-600">Offen</div>
                         </div>
                     </div>

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="py-12">
+    <div class="pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <!-- Custom Dashboard Content -->
@@ -23,12 +23,12 @@
                 <!-- Level Card -->
                 <div class="card bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
                     <div class="level-info flex flex-col items-center justify-center text-center mb-5">
-                        <div class="level-label mb-2 font-semibold">Aktuelles Level</div>
-                        <div class="level-number" id="currentLevel" style="margin: 0;">
+                        <div class="level-label mb-2 font-semibold text-center w-full">Aktuelles Level</div>
+                        <div class="level-number w-full flex justify-center" id="currentLevel">
                             @if($currentLevel > 0)
-                                <img src="{{ asset('assets/lvl' . $currentLevel . '.jpeg') }}" alt="Level {{ $currentLevel }}" style="height: 120px; width: auto; object-fit: contain;">
+                                <img src="{{ asset('assets/lvl' . $currentLevel . '.jpeg') }}" alt="Level {{ $currentLevel }}" class="mx-auto" style="height: 120px; width: auto; object-fit: contain;">
                             @else
-                                0
+                                <span class="text-4xl font-bold">0</span>
                             @endif
                         </div>
                     </div>
@@ -64,7 +64,7 @@
                         <div class="stat-label text-sm text-gray-600">Erfolgreiche Empfehlungen</div>
                     </div>
                     <div class="stat-card bg-white p-4 rounded shadow text-center">
-                        <div class="stat-value text-xl font-bold text-orange-500">{{ $totalReferrals - $approvedReferrals }}</div>
+                        <div class="stat-value text-xl font-bold" style="color: #f97316;">{{ $totalReferrals - $approvedReferrals }}</div>
                         <div class="stat-label text-sm text-gray-600">Ausstehend</div>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
                             <i class="fa-solid fa-cloud-arrow-up action-icon text-blue-500 text-2xl mb-2"></i>
                             <span class="action-label text-sm">Upload</span>
                         </a>
-                        <a href="#" class="action-button flex flex-col items-center justify-center p-4 bg-gray-50 rounded hover:bg-gray-100">
+                        <a href="{{ route('spielregeln') }}" class="action-button flex flex-col items-center justify-center p-4 bg-gray-50 rounded hover:bg-gray-100">
                             <i class="fa-solid fa-bell action-icon text-purple-500 text-2xl mb-2"></i>
                             <span class="action-label text-sm">Infos</span>
                         </a>

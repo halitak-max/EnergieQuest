@@ -25,6 +25,7 @@ Route::view('/datenschutz', 'datenschutz')->name('datenschutz');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::view('/spielregeln', 'spielregeln')->name('spielregeln');
     
     Route::get('/empfehlungen', [ReferralController::class, 'index'])->name('empfehlungen');
     Route::get('/gutscheine', [ReferralController::class, 'vouchers'])->name('gutscheine');

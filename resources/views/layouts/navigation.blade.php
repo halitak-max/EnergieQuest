@@ -1,4 +1,10 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<div class="sm:hidden flex justify-center pt-4 pb-2">
+    <a href="{{ route('dashboard') }}">
+        <x-application-logo class="block h-10 w-auto fill-current text-gray-800 transition duration-300 ease-in-out hover:scale-105" />
+    </a>
+</div>
+
+<nav x-data="{ open: false }" class="bg-white hidden sm:block">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -15,8 +21,20 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('empfehlungen')" :active="request()->routeIs('empfehlungen')">
+                        {{ __('Empfehlungen') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('gutscheine')" :active="request()->routeIs('gutscheine')">
+                        {{ __('Gutscheine') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('uploads.index')" :active="request()->routeIs('uploads.*')">
+                        {{ __('Uploads') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('datenschutz')" :active="request()->routeIs('datenschutz')">
                         {{ __('Datenschutz') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
+                        {{ __('Profil') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -38,7 +56,7 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('Profil') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -48,7 +66,7 @@
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('Abmelden') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -87,7 +105,7 @@
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+                    {{ __('Profil') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
@@ -97,7 +115,7 @@
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        {{ __('Abmelden') }}
                     </x-responsive-nav-link>
                 </form>
             </div>
