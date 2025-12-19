@@ -40,8 +40,8 @@
                                 @endif
                             </span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="h-2 rounded-full" style="width: {{ max($progress, 5) }}%; background-color: #6CB4EE;"></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="h-2.5 rounded-full" style="width: {{ $progress }}%; background-color: #6CB4EE;"></div>
                         </div>
                         <div class="text-[10px] text-gray-400 mt-1">
                             @if($nextLevel)
