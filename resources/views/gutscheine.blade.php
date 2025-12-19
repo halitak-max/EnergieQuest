@@ -96,13 +96,9 @@
                                         </div>
                                     </div>
                                     <div class="level-right text-right">
-                                        @if($isPassed)
-                                            <i class="fa-solid fa-check text-green-500 text-xl"></i>
-                                        @else
-                                            <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
-                                            @if($level['value'] > 0)
-                                                <div class="text-xs text-gray-500">Gutschein</div>
-                                            @endif
+                                        <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
+                                        @if($level['value'] > 0)
+                                            <div class="text-xs text-gray-500">Gutschein</div>
                                         @endif
                                     </div>
                                 </div>
@@ -111,17 +107,20 @@
                     </div>
                 </div>
 
-                <!-- Info Card -->
-                <div class="card bg-white p-6 rounded shadow mt-6 flex gap-4 items-start">
-                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 text-gray-500">
-                        <i class="fa-regular fa-circle-question"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800 mb-1">Wie verdiene ich Gutscheine?</h4>
-                        <p class="text-sm text-gray-600">
-                            Für jeden erfolgreich abgeschlossenen Tarifwechsel einer empfohlenen Person erhalte ich Punkte. Je mehr Empfehlungen, desto höher mein Level und desto mehr Gutscheine kann ich freischalten!
-                        </p>
-                    </div>
+                <!-- Info Section (Kush) -->
+                <div class="mt-20 flex flex-col items-center relative pb-8">
+                     <!-- Speech Bubble -->
+                     <div class="relative w-64 mb-[-40px] ml-32 z-20 transform -rotate-2">
+                        <img src="{{ asset('assets/sprechblase.png') }}" alt="Sprechblase" class="w-full drop-shadow-md">
+                        <div class="absolute inset-0 flex items-center justify-center p-6 pb-10">
+                            <span class="font-bold text-gray-800 text-base text-center leading-tight">Wie verdiene ich Gutscheine?</span>
+                        </div>
+                     </div>
+                    
+                    <!-- Kush Bird -->
+                     <div class="z-10">
+                        <img src="{{ asset('assets/kush.png') }}" alt="Kush" class="w-64 h-auto transform scale-125 origin-bottom drop-shadow-lg">
+                     </div>
                 </div>
 
             </div>
