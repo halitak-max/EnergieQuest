@@ -54,6 +54,7 @@ jobs:
 
       - name: Add server to known_hosts
         run: |
+          mkdir -p ~/.ssh
           PORT=${SSH_PORT:-22}
           ssh-keyscan -p "$PORT" -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
         env:
