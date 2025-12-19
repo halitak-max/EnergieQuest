@@ -62,9 +62,15 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
       - name: Rsync to server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ env.SSH_PORT }}
         run: |
           PORT=${SSH_PORT:-22}
-          RSYNC_RSH="sshpass -p '${SSH_PASSWORD}' ssh -p ${PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no"
+          # Use SSHPASS env var with -e flag for better special char handling
+          RSYNC_RSH="sshpass -e ssh -p ${PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no"
           rsync -az --delete -e "${RSYNC_RSH}" \
             --exclude=".env" \
             --exclude="storage/app/**" \
@@ -82,14 +88,14 @@ jobs:
 
       - name: Run remote deploy steps
         env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ env.SSH_PORT }}
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
           PHP_FPM_SERVICE: ${{ secrets.PHP_FPM_SERVICE }}
         run: |
           PORT=${SSH_PORT:-22}
-          sshpass -p "${SSH_PASSWORD}" ssh -p ${PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${SSH_USER}@${SSH_HOST} <<'EOF'
+          sshpass -e ssh -p ${PORT} -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${SSH_USER}@${SSH_HOST} <<'EOF'
           set -e
           cd ${APP_PATH}
 
