@@ -24,8 +24,8 @@
                             <div class="text-sm text-gray-500 uppercase tracking-wide font-semibold">Aktuelles Level</div>
                             <div class="text-4xl font-bold text-gray-800">{{ $currentLevel }}</div>
                         </div>
-                        <div class="text-4xl text-yellow-500">
-                            <i class="fa-solid fa-trophy"></i>
+                        <div class="flex items-center justify-center w-16 h-16 bg-yellow-50 rounded-full shadow-md border border-yellow-200">
+                            <i class="fa-solid fa-trophy text-3xl drop-shadow-sm" style="color: #FFD700;"></i>
                         </div>
                     </div>
                     
@@ -41,7 +41,7 @@
                             </span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $progress }}%"></div>
+                            <div class="h-2.5 rounded-full" style="width: {{ $progress }}%; background-color: #6CB4EE;"></div>
                         </div>
                         <div class="text-xs text-gray-500 mt-1">
                             @if($nextLevel)
@@ -57,7 +57,7 @@
                 <div class="card bg-white p-6 rounded shadow mb-6 text-center">
                     <div>
                         <div class="text-gray-500 text-sm">Gesamte Gutscheine verdient</div>
-                        <div class="text-4xl font-bold text-blue-600 mt-2">{{ $earnedTotal }}€</div>
+                        <div class="text-4xl font-bold mt-2" style="color: #6cb4ee;">{{ $earnedTotal }}€</div>
                     </div>
                 </div>
 
@@ -69,16 +69,20 @@
                             @php
                                 $isActive = $level['level'] === $currentLevel;
                                 $isPassed = $level['level'] < $currentLevel;
-                                $chestImage = ($isActive || $isPassed) ? asset('assets/offene_truhe.png') : asset('assets/geschlossene_truhe.jpeg');
-                                $statusClass = ($isActive || $isPassed) ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white';
+                                $isOpen = $isActive || $isPassed;
+                                $chestImage = $isOpen ? asset('assets/offene_truhe.png') : asset('assets/geschlossene_truhe.jpeg');
+                                $statusClass = $isOpen ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white';
                                 if ($isActive) $statusClass = 'border-blue-500 bg-green-50 shadow-md'; 
+                                
+                                // Offene Truhe etwas größer skalieren, da sie optisch oft kleiner wirkt
+                                $imgScale = $isOpen ? 'scale-125' : 'scale-100';
                             @endphp
 
                             <div class="level-item relative border rounded-xl p-4 {{ $statusClass }}">
                                 <div class="flex justify-between items-center">
                                     <div class="level-left flex gap-4 items-center">
-                                        <div class="w-16 h-16 flex-shrink-0">
-                                            <img src="{{ $chestImage }}" alt="Truhe" class="w-full h-full object-contain">
+                                        <div class="w-14 h-14 flex-shrink-0 flex items-center justify-center p-1 overflow-visible">
+                                            <img src="{{ $chestImage }}" alt="Truhe" class="max-w-full max-h-full object-contain drop-shadow-sm {{ $imgScale }} transition-transform">
                                         </div>
                                         
                                         <div class="level-info-text">
@@ -92,9 +96,13 @@
                                         </div>
                                     </div>
                                     <div class="level-right text-right">
-                                        <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
-                                        @if($level['value'] > 0)
-                                            <div class="text-xs text-gray-500">Gutschein</div>
+                                        @if($isPassed)
+                                            <i class="fa-solid fa-check text-green-500 text-xl"></i>
+                                        @else
+                                            <div class="font-bold text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
+                                            @if($level['value'] > 0)
+                                                <div class="text-xs text-gray-500">Gutschein</div>
+                                            @endif
                                         @endif
                                     </div>
                                 </div>

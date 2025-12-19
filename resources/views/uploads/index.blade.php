@@ -48,7 +48,7 @@
                 </div>
 
                 <!-- File List -->
-                <div class="card bg-white p-6 rounded shadow">
+                <div class="card bg-white p-6 rounded shadow text-center">
                     <h3 class="font-bold text-lg mb-4">Meine Uploads</h3>
                     
                     @if($uploads->count() > 0)

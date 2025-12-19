@@ -24,7 +24,13 @@ body {
     background-color: var(--background-color);
     color: var(--text-primary);
     min-height: 100vh;
-    padding-bottom: 80px; /* Platz für Bottom Navigation */
+    padding-bottom: 80px; /* Platz für Bottom Navigation auf Mobile */
+}
+
+@media (min-width: 640px) {
+    body {
+        padding-bottom: 0; /* Kein Padding auf Desktop */
+    }
 }
 
 .container {
@@ -262,6 +268,11 @@ body {
     z-index: 100;
 }
 
+@media (min-width: 640px) {
+    .bottom-nav {
+        display: none !important;
+    }
+}
 .nav-item {
     display: flex;
     flex-direction: column;
@@ -364,3 +375,4 @@ body {
     border-radius: 8px;
     margin-bottom: 8px;
 }
+

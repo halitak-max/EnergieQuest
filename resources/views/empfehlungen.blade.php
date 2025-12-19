@@ -27,7 +27,7 @@
                             <div class="stat-label text-sm text-gray-600">Erfolgreich</div>
                         </div>
                         <div class="stat-card bg-gray-50 p-4 rounded text-center">
-                            <div class="stat-value text-xl font-bold" style="color: #f97316;">{{ $stats['pending'] }}</div>
+                            <div class="stat-value text-xl font-bold" style="color: #FFBF00;">{{ $stats['pending'] }}</div>
                             <div class="stat-label text-sm text-gray-600">Offen</div>
                         </div>
                     </div>
@@ -41,7 +41,7 @@
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-6 py-3">Name</th>
-                                    <th scope="col" class="px-6 py-3">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -50,7 +50,7 @@
                                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                             {{ $referral->referredUser->name ?? $referral->referredUser->full_name ?? 'Unbekannt' }}
                                         </td>
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 text-center">
                                             @if($referral->status == 0)
                                                 <span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">In Prüfung</span>
                                             @elseif($referral->status == 1)

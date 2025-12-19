@@ -64,7 +64,7 @@
                         <div class="stat-label text-sm text-gray-600">Erfolgreiche Empfehlungen</div>
                     </div>
                     <div class="stat-card bg-white p-4 rounded shadow text-center">
-                        <div class="stat-value text-xl font-bold" style="color: #f97316;">{{ $totalReferrals - $approvedReferrals }}</div>
+                        <div class="stat-value text-xl font-bold" style="color: #FFBF00;">{{ $totalReferrals - $approvedReferrals }}</div>
                         <div class="stat-label text-sm text-gray-600">Ausstehend</div>
                     </div>
                 </div>

@@ -3,24 +3,24 @@
         @csrf
 
         <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+        <div class="text-center">
+            <x-input-label for="name" :value="__('Vollständiger Name')" />
+            <x-text-input id="name" class="block mt-1 w-full text-center" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
         <!-- Email Address -->
-        <div class="mt-4">
+        <div class="mt-4 text-center">
             <x-input-label for="email" :value="__('E-Mail')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+            <x-text-input id="email" class="block mt-1 w-full text-center" type="email" name="email" :value="old('email')" required autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
+        <div class="mt-4 text-center">
             <x-input-label for="password" :value="__('Passwort')" />
 
-            <x-text-input id="password" class="block mt-1 w-full"
+            <x-text-input id="password" class="block mt-1 w-full text-center"
                             type="password"
                             name="password"
                             required autocomplete="new-password" />
@@ -29,10 +29,10 @@
         </div>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
+        <div class="mt-4 text-center">
             <x-input-label for="password_confirmation" :value="__('Passwort bestätigen')" />
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
+            <x-text-input id="password_confirmation" class="block mt-1 w-full text-center"
                             type="password"
                             name="password_confirmation" required autocomplete="new-password" />
 
@@ -40,27 +40,27 @@
         </div>
 
         <!-- Referral Code -->
-        <div class="mt-4">
+        <div class="mt-4 text-center">
             <x-input-label for="referral_code" :value="__('Empfehlungscode (Optional)')" />
-            <x-text-input id="referral_code" class="block mt-1 w-full" type="text" name="referral_code" :value="old('referral_code', $referral_code ?? request('ref'))" />
+            <x-text-input id="referral_code" class="block mt-1 w-full text-center" type="text" name="referral_code" :value="old('referral_code', $referral_code ?? request('ref'))" />
             <x-input-error :messages="$errors->get('referral_code')" class="mt-2" />
         </div>
 
         <!-- Privacy Policy Checkbox -->
-        <div class="mt-4 block">
-            <label for="privacy_policy" class="inline-flex items-center">
+        <div class="mt-4 block text-center">
+            <label for="privacy_policy" class="inline-flex items-center justify-center w-full">
                 <input id="privacy_policy" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="privacy_policy" required>
                 <span class="ml-2 text-sm text-gray-600">{{ __('Ich akzeptiere die') }} <a target="_blank" href="{{ route('datenschutz') }}" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">{{ __('Datenschutzerklärung') }}</a></span>
             </label>
             <x-input-error :messages="$errors->get('privacy_policy')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex flex-col items-center justify-center mt-4 w-full">
             <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
                 {{ __('Bereits registriert?') }}
             </a>
 
-            <x-primary-button class="ml-4">
+            <x-primary-button class="mt-4 w-full justify-center">
                 {{ __('Registrieren') }}
             </x-primary-button>
         </div>

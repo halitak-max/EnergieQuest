@@ -6,17 +6,17 @@
         @csrf
 
         <!-- Email Address -->
-        <div>
+        <div class="text-center">
             <x-input-label for="email" :value="__('E-Mail')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-text-input id="email" class="block mt-1 w-full text-center" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
+        <div class="mt-4 text-center">
             <x-input-label for="password" :value="__('Passwort')" />
 
-            <x-text-input id="password" class="block mt-1 w-full"
+            <x-text-input id="password" class="block mt-1 w-full text-center"
                             type="password"
                             name="password"
                             required autocomplete="current-password" />
@@ -25,27 +25,29 @@
         </div>
 
         <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
+        <div class="block mt-4 text-center">
+            <label for="remember_me" class="inline-flex items-center justify-center w-full">
                 <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
                 <span class="ml-2 text-sm text-gray-600">{{ __('Angemeldet bleiben') }}</span>
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="text-sm text-gray-600 hover:text-gray-900 hover:underline rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Passwort vergessen?') }}
-                </a>
-            @endif
-
-            <a class="text-sm text-gray-600 hover:text-gray-900 hover:underline rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ml-4" href="{{ route('register') }}">
-                {{ __('Registrieren') }}
-            </a>
-
-            <x-primary-button class="ml-3">
+        <div class="flex flex-col items-end mt-4 space-y-2">
+            <x-primary-button class="w-full justify-center">
                 {{ __('Anmelden') }}
             </x-primary-button>
+
+            <div class="flex flex-col items-center w-full mt-4 space-y-2">
+                <a class="text-sm text-gray-600 hover:text-gray-900 hover:underline rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('register') }}">
+                    {{ __('Registrieren') }}
+                </a>
+
+                @if (Route::has('password.request'))
+                    <a class="text-sm text-gray-600 hover:text-gray-900 hover:underline rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                        {{ __('Passwort vergessen?') }}
+                    </a>
+                @endif
+            </div>
         </div>
     </form>
 </x-guest-layout>

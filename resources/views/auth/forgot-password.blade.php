@@ -1,22 +1,22 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
+    <div class="mb-4 text-sm text-gray-600 text-center">
         {{ __('Passwort vergessen? Kein Problem. Teilen Sie uns einfach Ihre E-Mail-Adresse mit und wir senden Ihnen einen Link zum Zurücksetzen des Passworts.') }}
     </div>
 
     <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <x-auth-session-status class="mb-4 text-center" :status="session('status')" />
 
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
         <!-- Email Address -->
-        <div>
+        <div class="text-center">
             <x-input-label for="email" :value="__('E-Mail')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
+            <x-text-input id="email" class="block mt-1 w-full text-center" type="email" name="email" :value="old('email')" required autofocus />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex items-center justify-center mt-4">
             <x-primary-button>
                 {{ __('Link zum Zurücksetzen senden') }}
             </x-primary-button>

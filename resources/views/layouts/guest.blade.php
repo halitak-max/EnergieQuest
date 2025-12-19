@@ -18,7 +18,7 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0" style="background-color: #C6DAF1;">
             <div>
                 <a href="/">
-                    <img src="{{ asset('assets/icon.jpeg') }}" alt="Logo" class="w-20 h-20 fill-current text-gray-500 rounded-full" />
+                    <img src="{{ asset('assets/icon.jpeg') }}" alt="Logo" class="w-20 h-20 fill-current text-gray-500 rounded-lg" />
                 </a>
             </div>
 
