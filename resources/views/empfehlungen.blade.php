@@ -23,7 +23,7 @@
                     <h3 class="font-bold text-lg mb-4 text-center">Mein Status</h3>
                     <div class="stats-grid grid grid-cols-2 gap-4">
                         <div class="stat-card bg-gray-50 p-4 rounded text-center">
-                            <div class="stat-value text-xl font-bold text-green-600">{{ $stats['success'] }}</div>
+                            <div class="stat-value text-xl font-bold" style="color: #15803D;">{{ $stats['success'] }}</div>
                             <div class="stat-label text-sm text-gray-600">Erfolgreich</div>
                         </div>
                         <div class="stat-card bg-gray-50 p-4 rounded text-center">

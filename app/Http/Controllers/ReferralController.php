@@ -13,7 +13,7 @@ class ReferralController extends Controller
         $referrals = $user->referrals()->with('referredUser')->latest()->get();
         
         $stats = [
-            'success' => $user->referrals()->whereIn('status', [1, 2])->count(),
+            'success' => $user->referrals()->where('status', 2)->count(),
             'pending' => $user->referrals()->where('status', 0)->count(),
         ];
 

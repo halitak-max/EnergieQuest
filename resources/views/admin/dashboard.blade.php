@@ -133,6 +133,7 @@
                                             <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                                             <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dateiname</th>
                                             <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aktion</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -145,10 +146,15 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $upload->original_name }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $upload->created_at->format('d.m.Y H:i') }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <a href="{{ Storage::disk('public')->url($upload->file_path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                                                        Anzeigen
+                                                    </a>
+                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Keine Uploads vorhanden</td>
+                                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Keine Uploads vorhanden</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
