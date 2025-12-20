@@ -7,8 +7,20 @@
 
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media (max-width: 767px) {
+            .mobile-bird {
+                width: 280px !important;
+            }
+        }
+        @media (min-width: 768px) {
+            .desktop-tiny-bird {
+                width: 288px !important;
+            }
+        }
+    </style>
 
-    <div class="pb-12">
+    <div class="sm:pb-12 overflow-x-hidden">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="container" style="max-width: 100%;">
 
@@ -20,11 +32,11 @@
                 <!-- Level Card -->
                 <div class="card bg-white p-4 rounded-lg shadow-sm mb-4">
                     <div class="level-info flex justify-between items-center mb-3">
-                        <div>
+                        <div class="flex flex-col items-center">
                             <div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Aktuelles Level</div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $currentLevel }}</div>
+                            <div class="text-2xl font-bold text-gray-800 mt-1">{{ $currentLevel }}</div>
                         </div>
-                        <div class="flex items-center justify-center w-10 h-10 bg-yellow-50 rounded-full shadow-sm border border-yellow-200">
+                        <div class="flex items-center justify-center w-10 h-10 bg-yellow-50 rounded-full shadow-sm border border-yellow-200 flex-shrink-0" style="transform: translateX(-10%);">
                             <i class="fa-solid fa-trophy text-lg drop-shadow-sm" style="color: #FFD700;"></i>
                         </div>
                     </div>
@@ -62,8 +74,8 @@
                 </div>
 
                 <!-- Level Overview -->
-                <div>
-                    <h3 class="text-base font-bold text-center mb-3">Level-Übersicht</h3>
+                <div class="mt-8">
+                    <h3 class="text-lg font-bold text-center mb-6">Level-Übersicht</h3>
                     <div class="level-timeline space-y-3">
                         @foreach($levels as $level)
                             @php
@@ -74,31 +86,36 @@
                                 $statusClass = $isOpen ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white';
                                 if ($isActive) $statusClass = 'border-blue-500 bg-green-50 shadow-sm'; 
                                 
-                                // Offene Truhe etwas größer skalieren, da sie optisch oft kleiner wirkt
-                                $imgScale = $isOpen ? 'scale-125' : 'scale-100';
+                                // Offene Truhe deutlich größer skalieren, da das Bild viel kleiner wirkt
+                                // Etwas nach rechts verschieben (translate-x), damit sie nicht die linke Kante berührt
+                                $imgStyle = $isOpen ? 'transform: scale(1.6) translateX(10%);' : '';
                             @endphp
 
                             <div class="level-item relative border rounded-lg p-3 {{ $statusClass }}">
                                 <div class="flex justify-between items-center">
-                                    <div class="level-left flex gap-3 items-center">
+                                    <div class="level-left flex gap-6 items-center">
                                         <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center p-1 overflow-visible">
-                                            <img src="{{ $chestImage }}" alt="Truhe" class="max-w-full max-h-full object-contain drop-shadow-sm {{ $imgScale }} transition-transform">
+                                            <img src="{{ $chestImage }}" alt="Truhe" class="max-w-full max-h-full object-contain drop-shadow-sm transition-transform" style="{{ $imgStyle }}">
                                         </div>
                                         
                                         <div class="level-info-text">
                                             <div class="flex items-center gap-2">
                                                 <h4 class="font-bold text-gray-800 text-sm">Level {{ $level['level'] }}</h4>
                                                 @if($isActive)
-                                                    <span class="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">Aktuell</span>
+                                                    <span class="text-white text-xs px-2 py-0.5 rounded-full" style="background-color: #6CB4EE;">Aktuell</span>
                                                 @endif
                                             </div>
                                             <p class="text-xs text-gray-500">{{ $level['label'] }}</p>
                                         </div>
                                     </div>
                                     <div class="level-right text-right">
-                                        <div class="font-bold text-sm text-gray-800 {{ $level['value'] > 0 ? 'text-blue-600' : '' }}">{{ $level['reward'] }}</div>
                                         @if($level['value'] > 0)
-                                            <div class="text-[10px] text-gray-500">Gutschein</div>
+                                            <div class="flex items-center gap-2 justify-end">
+                                                <span class="font-bold text-sm" style="color: #6CB4EE;">{{ $level['reward'] }}</span>
+                                                <span class="font-bold text-sm text-gray-800">Gutschein</span>
+                                            </div>
+                                        @else
+                                            <div class="font-bold text-sm text-gray-800">{{ $level['reward'] }}</div>
                                         @endif
                                     </div>
                                 </div>
@@ -108,22 +125,36 @@
                 </div>
 
                 <!-- Info Section (Kush) -->
-                <div class="mt-12 flex flex-col items-center relative pb-6">
-                     <!-- Speech Bubble -->
-                     <div class="relative w-48 mb-[-25px] ml-24 z-20 transform -rotate-2">
-                        <img src="{{ asset('assets/sprechblase.png') }}" alt="Sprechblase" class="w-full drop-shadow-sm">
-                        <div class="absolute inset-0 flex items-center justify-center p-4 pb-8">
-                            <span class="font-bold text-gray-800 text-xs text-center leading-tight">Wie verdiene ich Gutscheine?</span>
+                <div class="flex flex-col items-center relative pb-12" style="margin-top: 100px;">
+                     <!-- Cloud Speech Bubble (CSS/SVG Path) -->
+                     <div class="relative w-full z-50">
+                        <div class="bg-white p-4 pt-5 pb-8 shadow-sm relative visible w-full" style="border-radius: 50px;">
+                            <!-- Cloud Circles for irregular shape -->
+                            <div class="absolute -top-3 left-4 w-10 h-10 bg-white rounded-full"></div>
+                            <div class="absolute -top-5 left-10 w-14 h-14 bg-white rounded-full"></div>
+                            <div class="absolute -top-3 right-8 w-10 h-10 bg-white rounded-full"></div>
+                            <div class="absolute -right-3 top-2 w-10 h-10 bg-white rounded-full"></div>
+                            <div class="absolute -left-3 top-2 w-8 h-8 bg-white rounded-full"></div>
+                            
+                            <p class="text-gray-600 text-[10px] text-center leading-relaxed relative z-20 font-normal whitespace-normal">
+                                🥳 Jede Empfehlung lohnt sich! 🥳<br>
+                                Jeder erfolgreiche Tarifwechsel bringt dir Punkte,<br>
+                                mit denen du im Level aufsteigst und neue Gutscheine freischaltest!
+                            </p>
+                            
+                            <!-- Cloud Tail (Thought Bubble Dots) -->
                         </div>
                      </div>
                     
                     <!-- Kush Bird -->
-                     <div class="z-10">
-                        <img src="{{ asset('assets/kush.png') }}" alt="Kush" class="w-40 h-auto transform scale-125 origin-bottom drop-shadow-md">
+                     <div class="z-10 mt-2">
+                        <img src="{{ asset('assets/kush.png') }}" alt="Kush" class="w-14 h-auto transform scale-100 origin-bottom drop-shadow-md desktop-tiny-bird mobile-bird">
                      </div>
                 </div>
 
             </div>
+            
+            <div class="h-14 sm:hidden mt-3"></div>
         </div>
     </div>
 

@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>Laravel</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/icon.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/icon.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/icon.png') }}">
 
         <!-- Fonts -->
         <link href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">

@@ -21,8 +21,19 @@ class RegisteredUserController extends Controller
      */
     public function create(Request $request): View
     {
-        // Pass 'ref' query param if present
-        return view('auth.register', ['referral_code' => $request->query('ref')]);
+        $referrerName = null;
+        if ($request->query('ref')) {
+            $referrer = User::where('referral_code', $request->query('ref'))->first();
+            if ($referrer) {
+                $referrerName = $referrer->name;
+            }
+        }
+        
+        // Pass 'ref' query param and referrer name if present
+        return view('auth.register', [
+            'referral_code' => $request->query('ref'),
+            'referrer_name' => $referrerName
+        ]);
     }
 
     /**
@@ -35,6 +46,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'phone' => ['required', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'referral_code' => ['nullable', 'string', 'exists:users,referral_code'],
             'privacy_policy' => ['required', 'accepted'],
@@ -43,6 +55,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 

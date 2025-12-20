@@ -6,7 +6,7 @@
         </h2>
     </x-slot>
 
-    <div class="pb-12">
+    <div class="sm:pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="overflow-hidden shadow-sm sm:rounded-lg" style="background-color: #C6DAF1;">
                 <div class="p-6 text-gray-900">
@@ -156,8 +156,19 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="h-32 sm:hidden"></div>
         </div>
     </div>
+    
+    <style>
+        @media (max-width: 640px) {
+            .min-h-screen {
+                padding-bottom: 80px;
+            }
+        }
+    </style>
+    
     <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
         <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-house nav-icon text-xl"></i>

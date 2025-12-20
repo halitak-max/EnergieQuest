@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="pb-12">
+    <div class="sm:pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="container" style="max-width: 100%;">
 
                 <!-- Welcome -->
                 <div class="welcome-section text-center mb-6">
                     <h1 class="text-2xl font-bold">Dateien hochladen</h1>
-                    <p>Lade meine Energiedaten und Dokumente hoch</p>
+                    <p>Lade deine letzte Strom-Jahres-Abrechnung hoch!</p>
                 </div>
 
                 @if(session('success'))
@@ -78,7 +78,8 @@
                          <p class="text-center text-gray-500 text-sm">Noch keine Dateien hochgeladen.</p>
                     @endif
                 </div>
-
+    
+                <div class="h-14 sm:hidden mt-3"></div>
             </div>
         </div>
     </div>

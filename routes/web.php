@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReferralController;
@@ -37,6 +39,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Admin Routes
+Route::prefix('admin')->name('admin.')->group(function () {
+    // Guest Admin Routes
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+        Route::post('login', [AdminAuthController::class, 'login']);
+    });
+
+    // Authenticated Admin Routes
+    Route::middleware('auth:admin')->group(function () {
+        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
+    });
 });
 
 require __DIR__.'/auth.php';

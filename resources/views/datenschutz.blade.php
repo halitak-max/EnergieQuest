@@ -1,6 +1,6 @@
 <x-app-layout>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <div class="pb-12">
+    <div class="sm:pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="overflow-hidden shadow-sm sm:rounded-lg" style="background-color: #C6DAF1;">
                 <div class="p-6 text-gray-900">
@@ -154,6 +154,8 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="h-14 sm:hidden mt-3"></div>
         </div>
     </div>
 

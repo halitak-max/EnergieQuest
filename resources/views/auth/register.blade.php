@@ -16,6 +16,13 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Phone Number -->
+        <div class="mt-4 text-center">
+            <x-input-label for="phone" :value="__('Telefonnummer')" />
+            <x-text-input id="phone" class="block mt-1 w-full text-center" type="text" name="phone" :value="old('phone')" required autocomplete="tel" />
+            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4 text-center">
             <x-input-label for="password" :value="__('Passwort')" />
@@ -41,8 +48,16 @@
 
         <!-- Referral Code -->
         <div class="mt-4 text-center">
-            <x-input-label for="referral_code" :value="__('Empfehlungscode (Optional)')" />
-            <x-text-input id="referral_code" class="block mt-1 w-full text-center" type="text" name="referral_code" :value="old('referral_code', $referral_code ?? request('ref'))" />
+            @if(isset($referrer_name))
+                <x-input-label for="referral_code" :value="__('Empfohlen von')" />
+                <div class="block mt-1 w-full text-center py-2 bg-gray-100 rounded-md border border-gray-300 text-gray-700 font-medium">
+                    {{ $referrer_name }}
+                </div>
+                <input type="hidden" name="referral_code" value="{{ $referral_code }}">
+            @else
+                <x-input-label for="referral_code" :value="__('Empfehlungscode (Optional)')" />
+                <x-text-input id="referral_code" class="block mt-1 w-full text-center" type="text" name="referral_code" :value="old('referral_code', $referral_code ?? request('ref'))" />
+            @endif
             <x-input-error :messages="$errors->get('referral_code')" class="mt-2" />
         </div>
 
@@ -65,4 +80,31 @@
             </x-primary-button>
         </div>
     </form>
+
+    <x-slot name="footer">
+        <div class="flex flex-col items-center relative pb-12 w-full mx-auto" style="margin-top: 10px; max-width: 280px;">
+            <!-- Cloud Speech Bubble (CSS/SVG Path) -->
+            <div class="relative w-full z-50">
+               <div class="bg-white p-4 pt-5 pb-8 shadow-sm relative visible w-full" style="border-radius: 50px;">
+                   <!-- Cloud Circles for irregular shape -->
+                   <div class="absolute -top-3 left-4 w-10 h-10 bg-white rounded-full"></div>
+                   <div class="absolute -top-5 left-10 w-14 h-14 bg-white rounded-full"></div>
+                   <div class="absolute -top-3 right-8 w-10 h-10 bg-white rounded-full"></div>
+                   <div class="absolute -right-3 top-2 w-10 h-10 bg-white rounded-full"></div>
+                   <div class="absolute -left-3 top-2 w-8 h-8 bg-white rounded-full"></div>
+                   
+                   <p class="text-gray-600 text-[10px] text-center leading-relaxed relative z-20 font-normal whitespace-normal">
+                       💸 Schluss mit zu teurem Strom! 💸<br>
+                       Wir optimieren deinen Tarif und belohnen dich dafür.<br>
+                       Lade deine Rechnung hoch, sammle Punkte und kassiere Gutscheine!
+                   </p>
+               </div>
+            </div>
+           
+           <!-- Kush Bird -->
+            <div class="z-10 mt-2">
+               <img src="{{ asset('assets/kush.png') }}" alt="Kush" class="w-14 h-auto transform scale-100 origin-bottom drop-shadow-md" style="width: 280px;">
+            </div>
+       </div>
+    </x-slot>
 </x-guest-layout>

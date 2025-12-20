@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="pb-12">
+    <div class="sm:pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="container" style="max-width: 100%;">
 
@@ -40,14 +40,14 @@
                         <table class="w-full text-sm text-left text-gray-500">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-center">Name</th>
                                     <th scope="col" class="px-6 py-3 text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($referrals as $referral)
                                     <tr class="bg-white border-b">
-                                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap text-center">
                                             {{ $referral->referredUser->name ?? $referral->referredUser->full_name ?? 'Unbekannt' }}
                                         </td>
                                         <td class="px-6 py-4 text-center">
@@ -105,6 +105,8 @@
                 </div>
 
             </div>
+            
+            <div class="h-14 sm:hidden mt-3"></div>
         </div>
     </div>
     

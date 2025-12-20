@@ -6,6 +6,9 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/icon.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/icon.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/icon.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -16,15 +19,25 @@
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0" style="background-color: #C6DAF1;">
-            <div>
+            <div class="w-full sm:max-w-md text-center px-4 sm:px-0">
                 <a href="/">
-                    <img src="{{ asset('assets/icon.jpeg') }}" alt="Logo" class="w-20 h-20 fill-current text-gray-500 rounded-lg" />
+                    <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="w-full h-auto fill-current text-gray-500 rounded-lg" />
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+            <div class="w-full sm:max-w-md mt-6 px-4 sm:px-0 relative z-10">
+                <div class="bg-white shadow-md overflow-hidden rounded-lg sm:rounded-lg">
+                    <div class="px-6 py-4">
+                        {{ $slot }}
+                    </div>
+                </div>
             </div>
+
+            @if (isset($footer))
+                <div class="w-full sm:max-w-md mt-6 px-4 sm:px-0">
+                    {{ $footer }}
+                </div>
+            @endif
         </div>
     </body>
 </html>

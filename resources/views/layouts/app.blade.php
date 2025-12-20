@@ -6,10 +6,14 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/icon.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/icon.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/icon.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
