@@ -14,6 +14,70 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const saveButtons = document.querySelectorAll('.save-status-btn');
+                
+                saveButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const referralId = this.dataset.referralId;
+                        const select = document.getElementById(`status-select-${referralId}`);
+                        const indicator = document.getElementById(`status-indicator-${referralId}`);
+                        const newStatus = select.value;
+                        const originalStatus = select.dataset.currentStatus;
+                        
+                        // Disable button and select while saving
+                        this.disabled = true;
+                        select.disabled = true;
+                        indicator.textContent = 'Speichere...';
+                        indicator.className = 'status-indicator ml-2 text-xs text-blue-600';
+                        
+                        // Send AJAX request
+                        fetch(`/admin/referrals/${referralId}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                status: newStatus
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                indicator.textContent = '✓ Gespeichert';
+                                indicator.className = 'status-indicator ml-2 text-xs text-green-600';
+                                select.dataset.currentStatus = newStatus;
+                                
+                                // Remove success message after 2 seconds
+                                setTimeout(() => {
+                                    indicator.textContent = '';
+                                }, 2000);
+                            } else {
+                                throw new Error('Update failed');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            indicator.textContent = '✗ Fehler';
+                            indicator.className = 'status-indicator ml-2 text-xs text-red-600';
+                            // Revert to original status
+                            select.value = originalStatus;
+                            
+                            setTimeout(() => {
+                                indicator.textContent = '';
+                            }, 3000);
+                        })
+                        .finally(() => {
+                            this.disabled = false;
+                            select.disabled = false;
+                        });
+                    });
+                });
+            });
+        </script>
     </head>
     <body class="font-sans antialiased bg-gray-100">
         <div class="min-h-screen">
@@ -54,24 +118,12 @@
 
             <!-- Page Content -->
             <main class="py-12">
-                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
                     
-                    <!-- Stats -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <div class="text-gray-900 font-bold text-xl mb-2">Offene Uploads</div>
-                            <div class="text-3xl text-yellow-500">{{ $pendingUploads }}</div>
-                        </div>
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <div class="text-gray-900 font-bold text-xl mb-2">Gesamte Nutzer</div>
-                            <div class="text-3xl text-blue-500">{{ $totalUsers }}</div>
-                        </div>
-                    </div>
-
                     <!-- Uploads Table -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
-                            <h3 class="font-bold text-lg mb-4">Neueste Uploads</h3>
+                            <h3 class="font-bold text-lg mb-4">Alle Uploads</h3>
                             
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
@@ -79,39 +131,91 @@
                                         <tr>
                                             <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                             <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dateiname</th>
                                             <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aktion</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($uploads as $upload)
+                                        @forelse($uploads as $upload)
                                             <tr>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $upload->id }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {{ $upload->user->name }}<br>
                                                     <span class="text-xs text-gray-500">{{ $upload->user->email }}</span>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    @if($upload->status == 'approved')
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Genehmigt</span>
-                                                    @elseif($upload->status == 'rejected')
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Abgelehnt</span>
-                                                    @else
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Offen</span>
-                                                    @endif
-                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $upload->original_name }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $upload->created_at->format('d.m.Y H:i') }}</td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <a href="#" class="text-indigo-600 hover:text-indigo-900">Ansehen</a>
-                                                </td>
                                             </tr>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Keine Uploads vorhanden</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="mt-4">
-                                {{ $uploads->links() }}
+                        </div>
+                    </div>
+
+                    <!-- Referrals Table -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6 bg-white border-b border-gray-200">
+                            <h3 class="font-bold text-lg mb-4">Alle Referrals</h3>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Werber</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Geworbener User</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @forelse($referrals as $referral)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $referral->id }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ $referral->referrer->name }}<br>
+                                                    <span class="text-xs text-gray-500">{{ $referral->referrer->email }}</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ $referral->referredUser->name }}<br>
+                                                    <span class="text-xs text-gray-500">{{ $referral->referredUser->email }}</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                    <select 
+                                                        class="referral-status-select border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                                        data-referral-id="{{ $referral->id }}"
+                                                        data-current-status="{{ $referral->status }}"
+                                                        id="status-select-{{ $referral->id }}"
+                                                    >
+                                                        <option value="0" {{ $referral->status == 0 ? 'selected' : '' }}>0</option>
+                                                        <option value="1" {{ $referral->status == 1 ? 'selected' : '' }}>1</option>
+                                                        <option value="2" {{ $referral->status == 2 ? 'selected' : '' }}>2</option>
+                                                    </select>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {{ $referral->created_at->format('d.m.Y H:i') }}
+                                                    <button 
+                                                        type="button"
+                                                        class="save-status-btn ml-2 inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-black bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                        data-referral-id="{{ $referral->id }}"
+                                                    >
+                                                        Speichern
+                                                    </button>
+                                                    <span class="status-indicator ml-2 text-xs" id="status-indicator-{{ $referral->id }}"></span>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Keine Referrals vorhanden</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

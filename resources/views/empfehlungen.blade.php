@@ -52,9 +52,9 @@
                                         </td>
                                         <td class="px-6 py-4 text-center">
                                             @if($referral->status == 0)
-                                                <span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">In Prüfung</span>
+                                                <span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">Registriert</span>
                                             @elseif($referral->status == 1)
-                                                <span class="px-2 py-1 font-semibold leading-tight text-blue-700 bg-blue-100 rounded-full">Abgeschlossen</span>
+                                                <span class="px-2 py-1 font-semibold leading-tight text-blue-700 bg-blue-100 rounded-full">In Prüfung</span>
                                             @elseif($referral->status == 2)
                                                 <span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Genehmigt</span>
                                             @else
