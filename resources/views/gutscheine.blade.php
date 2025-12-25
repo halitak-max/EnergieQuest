@@ -25,19 +25,19 @@
             <div class="container" style="max-width: 100%;">
 
                 <!-- Header Stats -->
-                <div class="text-center mb-6">
+                <div class="text-center mb-4">
                     <h2 class="text-lg font-bold">Gutscheine & Level</h2>
                 </div>
 
                 <!-- Level Card -->
-                <div class="card bg-white p-4 rounded-lg shadow-sm mb-4">
-                    <div class="level-info flex justify-between items-center mb-3">
-                        <div class="flex flex-col items-center">
-                            <div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Aktuelles Level</div>
-                            <div class="text-2xl font-bold text-gray-800 mt-1">{{ $currentLevel }}</div>
+                <div class="card bg-white p-3 rounded-lg shadow-sm mb-4">
+                    <div class="level-info flex justify-between items-start mb-3">
+                        <div class="flex flex-col items-start">
+                            <img src="{{ asset('assets/Gutscheinkarte.png') }}" alt="Gutscheinkarte" class="h-auto drop-shadow-md" style="width: 10.5rem !important; max-width: 10.5rem !important; margin-left: -20px; margin-top: -12px;">
                         </div>
-                        <div class="flex items-center justify-center w-10 h-10 bg-yellow-50 rounded-full shadow-sm border border-yellow-200 flex-shrink-0" style="transform: translateX(-10%);">
-                            <i class="fa-solid fa-trophy text-lg drop-shadow-sm" style="color: #FFD700;"></i>
+                        <div class="flex flex-col items-center" style="margin-top: 2rem;">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Aktuelles Level</div>
+                            <div class="text-2xl font-bold" style="color: #6cb4ee;">{{ $currentLevel }}</div>
                         </div>
                     </div>
                     
@@ -46,7 +46,10 @@
                             <span>Fortschritt zu Level {{ $nextLevel ? ($currentLevel + 1) : 'MAX' }}</span>
                             <span>
                                 @if($nextLevel)
-                                    {{ $approvedCount - $levels[$currentLevel]['required'] }}/{{ $nextLevel['required'] - $levels[$currentLevel]['required'] }} Empfehlungen
+                                    @php
+                                        $currentInRange = max(0, $approvedCount - $currentThreshold);
+                                    @endphp
+                                    {{ $currentInRange }}/{{ $additionalForNextLevel }} Empfehlungen
                                 @else
                                     Max
                                 @endif
@@ -57,7 +60,10 @@
                         </div>
                         <div class="text-[10px] text-gray-400 mt-1">
                             @if($nextLevel)
-                                Noch {{ $nextLevel['required'] - $approvedCount }} genehmigte Empfehlung(en) bis Level {{ $currentLevel + 1 }}
+                                @php
+                                    $remaining = max(0, $additionalForNextLevel - ($approvedCount - $currentThreshold));
+                                @endphp
+                                Noch {{ $remaining }} genehmigte Empfehlung(en) bis Level {{ $currentLevel + 1 }}
                             @else
                                 Maximales Level erreicht!
                             @endif
@@ -68,13 +74,13 @@
                 <!-- Total Voucher Card -->
                 <div class="card bg-white p-4 rounded-lg shadow-sm mb-4 text-center">
                     <div>
-                        <div class="text-gray-500 text-xs">Gesamte Gutscheine verdient</div>
+                        <div class="text-gray-700 text-sm font-semibold mb-2">Gesamte Gutscheine verdient</div>
                         <div class="text-2xl font-bold mt-1" style="color: #6cb4ee;">{{ $earnedTotal }}€</div>
                     </div>
                 </div>
 
                 <!-- Level Overview -->
-                <div class="mt-8">
+                <div class="mt-8 mb-4">
                     <h3 class="text-lg font-bold text-center mb-6">Level-Übersicht</h3>
                     <div class="level-timeline space-y-3">
                         @foreach($levels as $level)
@@ -102,7 +108,7 @@
                                             <div class="flex items-center gap-2">
                                                 <h4 class="font-bold text-gray-800 text-sm">Level {{ $level['level'] }}</h4>
                                                 @if($isActive)
-                                                    <span class="text-white text-xs px-2 py-0.5 rounded-full" style="background-color: #6CB4EE;">Aktuell</span>
+                                                    <span class="text-white text-xs px-2 py-0.5 rounded-full" style="background-color: #1A73E8;">Aktuell</span>
                                                 @endif
                                             </div>
                                             <p class="text-xs text-gray-500">{{ $level['label'] }}</p>
@@ -124,32 +130,12 @@
                     </div>
                 </div>
 
-                <!-- Info Section (Kush) -->
-                <div class="flex flex-col items-center relative pb-12" style="margin-top: 100px;">
-                     <!-- Cloud Speech Bubble (CSS/SVG Path) -->
-                     <div class="relative w-full z-50">
-                        <div class="bg-white p-4 pt-5 pb-8 shadow-sm relative visible w-full" style="border-radius: 50px;">
-                            <!-- Cloud Circles for irregular shape -->
-                            <div class="absolute -top-3 left-4 w-10 h-10 bg-white rounded-full"></div>
-                            <div class="absolute -top-5 left-10 w-14 h-14 bg-white rounded-full"></div>
-                            <div class="absolute -top-3 right-8 w-10 h-10 bg-white rounded-full"></div>
-                            <div class="absolute -right-3 top-2 w-10 h-10 bg-white rounded-full"></div>
-                            <div class="absolute -left-3 top-2 w-8 h-8 bg-white rounded-full"></div>
-                            
-                            <p class="text-gray-600 text-[10px] text-center leading-relaxed relative z-20 font-normal whitespace-normal">
-                                🥳 Jede Empfehlung lohnt sich! 🥳<br>
-                                Jeder erfolgreiche Tarifwechsel bringt dir Punkte,<br>
-                                mit denen du im Level aufsteigst und neue Gutscheine freischaltest!
-                            </p>
-                            
-                            <!-- Cloud Tail (Thought Bubble Dots) -->
-                        </div>
-                     </div>
-                    
-                    <!-- Kush Bird -->
-                     <div class="z-10 mt-2">
-                        <img src="{{ asset('assets/kush.png') }}" alt="Kush" class="w-14 h-auto transform scale-100 origin-bottom drop-shadow-md desktop-tiny-bird mobile-bird">
-                     </div>
+                <!-- Text Container -->
+                <div class="bg-white border rounded-xl p-5 shadow-md mb-4">
+                    <p class="text-base text-gray-400 text-center">
+                        🥳 Jede Empfehlung lohnt sich! 🥳<br>
+                        Geschenkgutschein einlösbar bei über 500 bekannten Shops
+                    </p>
                 </div>
 
             </div>
@@ -158,11 +144,15 @@
         </div>
     </div>
 
-    <!-- Bottom Nav -->
+    <!-- Bottom Nav (Mobile) -->
     <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
         <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-house nav-icon text-xl"></i>
             <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-bolt nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Angebot</span>
         </a>
         <a href="{{ route('empfehlungen') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('empfehlungen') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-user-plus nav-icon text-xl"></i>
@@ -171,10 +161,6 @@
         <a href="{{ route('gutscheine') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('gutscheine') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-ticket nav-icon text-xl"></i>
             <span class="text-xs mt-1">Gutscheine</span>
-        </a>
-        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
-            <i class="fa-solid fa-cloud-arrow-up nav-icon text-xl"></i>
-            <span class="text-xs mt-1">Uploads</span>
         </a>
         <a href="{{ route('profile.edit') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('profile.edit') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-regular fa-user nav-icon text-xl"></i>

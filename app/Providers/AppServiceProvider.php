@@ -13,7 +13,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Ensure .env is loaded
+        if (file_exists(base_path('.env'))) {
+            $dotenv = \Dotenv\Dotenv::createImmutable(base_path());
+            $dotenv->load();
+        }
     }
 
     /**

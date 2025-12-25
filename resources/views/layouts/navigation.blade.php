@@ -20,14 +20,14 @@
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-nav-link>
+                <x-nav-link :href="route('uploads.index')" :active="request()->routeIs('uploads.*')">
+                    {{ __('Angebot') }}
+                </x-nav-link>
                 <x-nav-link :href="route('empfehlungen')" :active="request()->routeIs('empfehlungen')">
                     {{ __('Empfehlungen') }}
                 </x-nav-link>
                 <x-nav-link :href="route('gutscheine')" :active="request()->routeIs('gutscheine')">
                     {{ __('Gutscheine') }}
-                </x-nav-link>
-                <x-nav-link :href="route('uploads.index')" :active="request()->routeIs('uploads.*')">
-                    {{ __('Uploads') }}
                 </x-nav-link>
                 <x-nav-link :href="route('datenschutz')" :active="request()->routeIs('datenschutz')">
                     {{ __('Datenschutz') }}
@@ -85,6 +85,15 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('uploads.index')" :active="request()->routeIs('uploads.*')">
+                {{ __('Angebot') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('empfehlungen')" :active="request()->routeIs('empfehlungen')">
+                {{ __('Empfehlungen') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('gutscheine')" :active="request()->routeIs('gutscheine')">
+                {{ __('Gutscheine') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('datenschutz')" :active="request()->routeIs('datenschutz')">
                 {{ __('Datenschutz') }}

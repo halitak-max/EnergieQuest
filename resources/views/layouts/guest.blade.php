@@ -18,10 +18,10 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0" style="background-color: #C6DAF1;">
-            <div class="w-full sm:max-w-md text-center px-4 sm:px-0">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-12" style="background-color: #C6DAF1;">
+            <div class="w-full sm:max-w-md text-center px-4 sm:px-0 mb-4">
                 <a href="/">
-                    <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="w-full h-auto fill-current text-gray-500 rounded-lg" />
+                    <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="h-8 w-auto mx-auto fill-current text-gray-500 rounded-lg" style="max-width: 200px;" />
                 </a>
             </div>
 

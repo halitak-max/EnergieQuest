@@ -38,7 +38,10 @@
                             <span>Fortschritt zu Level <span id="nextLevelNum">{{ $currentLevel < 7 ? $currentLevel + 1 : 'MAX' }}</span></span>
                             <span id="progressText">
                                 @if($currentLevel < 7)
-                                    {{ $approvedReferrals - ($currentLevel > 0 ? ($thresholds[$currentLevel] ?? 0) : 0) }}/{{ $needed - ($currentLevel > 0 ? ($thresholds[$currentLevel] ?? 0) : 0) }} Empfehlungen
+                                    @php
+                                        $currentInRange = max(0, $approvedReferrals - $currentThreshold);
+                                    @endphp
+                                    {{ $currentInRange }}/{{ $additionalForNextLevel }} Empfehlungen
                                 @else
                                     Max Level
                                 @endif
@@ -49,7 +52,10 @@
                         </div>
                         <div class="progress-text text-sm text-gray-500 mt-1" id="remainingText">
                             @if($currentLevel < 7)
-                                Noch {{ $needed - $approvedReferrals }} genehmigte Empfehlung(en) bis Level {{ $currentLevel + 1 }}
+                                @php
+                                    $remaining = max(0, $additionalForNextLevel - ($approvedReferrals - $currentThreshold));
+                                @endphp
+                                Noch {{ $remaining }} genehmigte Empfehlung(en) bis Level {{ $currentLevel + 1 }}
                             @else
                                 Maximales Level erreicht!
                             @endif
@@ -59,20 +65,47 @@
 
                 <!-- Stats Grid -->
                 <div class="stats-grid grid grid-cols-2 gap-4 mb-6">
-                    <div class="stat-card bg-white p-4 rounded shadow text-center">
-                        <div class="stat-value text-xl font-bold text-green-600">{{ $approvedReferrals }}</div>
+                    <a href="{{ route('empfehlungen') }}" class="stat-card bg-white p-4 rounded shadow text-center hover:bg-gray-50 cursor-pointer transition">
+                        <div class="stat-value text-xl font-bold" style="color: #6CB4EE;">{{ $approvedReferrals }}</div>
                         <div class="stat-label text-sm text-gray-600">Erfolgreiche Empfehlungen</div>
-                    </div>
-                    <div class="stat-card bg-white p-4 rounded shadow text-center">
+                    </a>
+                    <a href="{{ route('empfehlungen') }}" class="stat-card bg-white p-4 rounded shadow text-center hover:bg-gray-50 cursor-pointer transition">
                         <div class="stat-value text-xl font-bold" style="color: #FFBF00;">{{ $totalReferrals - $approvedReferrals }}</div>
-                        <div class="stat-label text-sm text-gray-600">Ausstehend</div>
-                    </div>
+                        <div class="stat-label text-sm text-gray-600">Ausstehende Empfehlungen</div>
+                    </a>
+                </div>
+
+                <!-- Anleitung: Gutschein erhalten -->
+                <div class="card bg-white p-6 rounded shadow mb-6">
+                    <h3 class="font-bold text-lg mb-6 text-center">🥳So erhälst du Gutscheine!🥳</h3>
+                    <ul class="space-y-4 text-base text-gray-700 mx-auto text-center" style="max-width: 650px; list-style: none; padding: 0;">
+                        <li class="flex items-center justify-center p-4 rounded-lg" style="background-color: #E1FEEA;">
+                            <span class="font-medium leading-relaxed text-gray-800">
+                                Empfehlungscode teilen und Freunde & Bekannte einladen
+                            </span>
+                        </li>
+                        <li class="flex items-center justify-center p-4 rounded-lg" style="background-color: #E1FEEA;">
+                            <span class="font-medium leading-relaxed text-gray-800">
+                                Freunde registrieren sich ganz einfach mit deinem persönlichen Empfehlungscode
+                            </span>
+                        </li>
+                        <li class="flex items-center justify-center p-4 rounded-lg" style="background-color: #E1FEEA;">
+                            <span class="font-medium leading-relaxed text-gray-800">
+                                Strom-Jahresabrechnung hochladen & Angebot zur Vertragsoptimierung direkt erhalten!
+                            </span>
+                        </li>
+                        <li class="flex items-center justify-center p-4 rounded-lg" style="background-color: #E1FEEA;">
+                            <span class="font-medium leading-relaxed text-gray-800">
+                                Level aufsteigen & belohnt werden – dein Gutschein kommt direkt per E-Mail!
+                            </span>
+                        </li>
+                    </ul>
                 </div>
 
                 <!-- Referral Code -->
                 <div class="card bg-white p-6 rounded shadow mb-6 text-center">
                     <h3 class="font-bold text-lg mb-4">Mein Empfehlungscode</h3>
-                    <div class="referral-code-box bg-gray-100 p-3 rounded mb-4 font-mono text-xl">{{ Auth::user()->referral_code }}</div>
+                    <div class="referral-code-box bg-gray-100 p-3 rounded mb-4 font-mono text-xl" style="color: #6CB4EE; border-color: #6CB4EE;">{{ Auth::user()->referral_code }}</div>
                     
                     <div x-data="{ 
                         share() {
@@ -93,7 +126,7 @@
                         }
                     }">
                         <button @click="share" class="btn-share bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                            <i class="fa-solid fa-share-nodes"></i> Link teilen
+                            <i class="fa-solid fa-share-nodes"></i> Empfehlungscode teilen
                         </button>
                     </div>
                 </div>
@@ -111,8 +144,8 @@
                             <span class="action-label text-sm">Gutscheine</span>
                         </a>
                         <a href="{{ route('uploads.index') }}" class="action-button flex flex-col items-center justify-center p-4 bg-gray-50 rounded hover:bg-gray-100">
-                            <i class="fa-solid fa-cloud-arrow-up action-icon text-blue-500 text-2xl mb-2"></i>
-                            <span class="action-label text-sm">Upload</span>
+                            <i class="fa-solid fa-bolt action-icon text-blue-500 text-2xl mb-2"></i>
+                            <span class="action-label text-sm">Angebot</span>
                         </a>
                         <a href="{{ route('spielregeln') }}" class="action-button flex flex-col items-center justify-center p-4 bg-gray-50 rounded hover:bg-gray-100">
                             <i class="fa-solid fa-bell action-icon text-purple-500 text-2xl mb-2"></i>
@@ -132,6 +165,10 @@
             <i class="fa-solid fa-house nav-icon text-xl"></i>
             <span class="text-xs mt-1">Home</span>
         </a>
+        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-bolt nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Angebot</span>
+        </a>
         <a href="{{ route('empfehlungen') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('empfehlungen') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-user-plus nav-icon text-xl"></i>
             <span class="text-xs mt-1">Empfehlungen</span>
@@ -139,10 +176,6 @@
         <a href="{{ route('gutscheine') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('gutscheine') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-ticket nav-icon text-xl"></i>
             <span class="text-xs mt-1">Gutscheine</span>
-        </a>
-        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
-            <i class="fa-solid fa-cloud-arrow-up nav-icon text-xl"></i>
-            <span class="text-xs mt-1">Uploads</span>
         </a>
         <a href="{{ route('profile.edit') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('profile.edit') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-regular fa-user nav-icon text-xl"></i>

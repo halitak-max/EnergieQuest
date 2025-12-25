@@ -14,141 +14,136 @@
                         
                         <!-- Header -->
                         <div class="text-center mb-8">
-                            <h1 class="text-3xl font-bold text-gray-800 mb-2">🎯 Ziel des Spiels</h1>
-                            <p class="text-xl text-gray-600">EnergieQuest ist ein Empfehlungs- und Belohnungsspiel.</p>
-                            <p class="mt-2 text-gray-600">
-                                Das Ziel ist es, Energie zu sparen, Freunde einzuladen, Aufgaben zu erfüllen und dadurch Level aufzusteigen sowie Gutscheine zu verdienen.
-                            </p>
+                            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-2 text-center">⚡ EnergieQuest – Dein Spiel. Deine Energie. Deine Belohnungen ⚡</h1>
+                        </div>
+
+                        <!-- Willkommens-Container -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+                            <p class="text-lg text-gray-700 text-center">Willkommen bei EnergieQuest – dem smarten Empfehlungs- und Belohnungsspiel, bei dem du Energiekosten optimierst, Freunde einlädst und dabei echte Gutscheine freischaltest. Kein Glück, kein Zufall – dein Einsatz entscheidet.</p>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             
-                            <!-- 1. Levels -->
+                            <!-- 1. Dein Ziel -->
                             <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                    <span class="mr-2">🧩</span> 1. Levels & Fortschritt
+                                <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 text-center whitespace-nowrap overflow-hidden text-ellipsis">
+                                    🧠 Dein Ziel 🧠
                                 </h3>
-                                <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                    <li>Jeder Spieler startet mit <strong>Level 0</strong>.</li>
-                                    <li>Um ein Level aufzusteigen, muss eine Empfehlung abgeschlossen werden.</li>
-                                    <li>Voraussetzung: Die empfohlene Person lädt ihre Stromrechnung hoch und lässt ihren Stromtarif optimieren.</li>
-                                    <li>Der Fortschritt wird im Dashboard angezeigt (Status unter "Empfehlungen").</li>
-                                    <li>Höhere Level schalten <strong>höhere Belohnungen</strong> und <strong>zusätzliche Gutscheine</strong> frei.</li>
+                                <p class="text-gray-700 text-center">
+                                    Steige im Level auf, sammle Punkte, knacke Meilensteine und sichere dir exklusive Gutscheine. Je aktiver du bist, desto größer werden deine Belohnungen.
+                                </p>
+                            </div>
+
+                            <!-- 2. Level-System -->
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
+                                <h3 class="text-base sm:text-xl font-bold text-gray-800 mb-4 text-center">
+                                    🧩 Level-System 🧩
+                                </h3>
+                                <p class="text-gray-700 mb-3 text-center">Du startest bei Level 0. Jede erfolgreiche Empfehlung bringt dich deinem nächsten Level näher.</p>
+                                <p class="text-gray-700 mb-2 font-semibold text-center">💥 So steigst du auf:</p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700 text-left mt-3">
+                                    <li>Du lädst eine Person mit deinem persönlichen Code ein</li>
+                                    <li>Sie registriert sich, lädt anschließend Ihre Stromrechnung hoch.</li>
+                                    <li>Ihr Stromtarif wird optimiert</li>
                                 </ul>
+                                <p class="text-gray-700 mt-4 text-center">
+                                    👉 Dein Fortschritt ist jederzeit im Dashboard unter „Empfehlungen" sichtbar.<br>
+                                    👉 Höhere Level = neue Gutscheine
+                                </p>
                             </div>
 
-                            <!-- 2. Empfehlungen -->
+                            <!-- 3. Empfehlungs-Quest -->
                             <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                    <span class="mr-2">🧑‍🤝‍🧑</span> 2. Empfehlungen (Referral-System)
+                                <h3 class="text-base sm:text-xl font-bold text-gray-800 mb-4 text-center">
+                                    🧑‍🤝‍🧑 Empfehlungs-Quest 🧑‍🤝‍🧑
                                 </h3>
-                                <p class="text-gray-700 mb-3">Jeder Spieler erhält einen persönlichen Empfehlungscode.</p>
-                                <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                    <li>Wird der Code genutzt, entsteht eine <em>pending</em> Empfehlung.</li>
-                                    <li>Erfolgreich, wenn:
-                                        <ol class="list-decimal list-inside ml-4 mt-1">
-                                            <li>Profil erstellt wird</li>
-                                            <li>Mindestens eine Quest erfüllt wird (z. B. Upload)</li>
-                                        </ol>
-                                    </li>
-                                    <li>Belohnung: Punkte, Level-Fortschritt, ggf. Gutscheine.</li>
+                                <p class="text-gray-700 mb-3 text-center">Jeder Spieler erhält einen eigenen Empfehlungscode. Wird er genutzt, startet eine Empfehlung. Erfolgreich wird sie, wenn:</p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700 text-left mt-3">
+                                    <li>ein Profil erstellt wird</li>
+                                    <li>die Empfohlene Person Ihre Stromkosten optimiert.</li>
                                 </ul>
+                                <p class="text-gray-700 mt-4 text-center">
+                                    🎁 Deine Belohnung: Punkte, Level-Fortschritt und – exklusive Gutscheine.
+                                </p>
+                                <p class="text-gray-700 mt-2 text-center">
+                                    📍 Alle Gutscheine findest du im Menüpunkt „Gutscheine" – inklusive Wert
+                                </p>
                             </div>
 
-                            <!-- 3. Upload-Quests -->
+                            <!-- 4. Profil -->
                             <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                    <span class="mr-2">📸</span> 3. Upload-Quests
+                                <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 text-center">
+                                    👤 Dein Profil 👤
                                 </h3>
-                                <p class="text-gray-700 mb-2">Aufgaben, bei denen Fotos/Screenshots eingereicht werden (z. B. Energiespar-Nachweis).</p>
-                                <div class="bg-white p-3 rounded border border-gray-200 mt-2">
-                                    <h4 class="font-bold text-sm text-gray-700 mb-1">Regeln:</h4>
-                                    <ul class="list-disc list-inside text-sm text-gray-600">
-                                        <li>Echt, unverändert, selbst angefertigt.</li>
-                                        <li>Jeder Upload wird geprüft.</li>
-                                        <li>Bringt: Quest-Punkte, Level-Fortschritt, Bonus-Belohnungen.</li>
-                                    </ul>
-                                </div>
+                                <p class="text-gray-700 mb-3 text-center">Verwalte deine Daten (Name, Adresse, E-Mail, Rufnummer, Geburtsdatum, IBAN), sieh deinen Empfehlungscode und checke jederzeit deinen Fortschritt.</p>
+                                <p class="text-gray-700 text-center">
+                                    <br>🔐 Deine Daten werden ausschließlich für EnergieQuest, Stromtarifoptimierungen und deine Belohnungen genutzt.
+                                </p>
                             </div>
 
-                            <!-- 4. Gutscheine -->
+                            <!-- 5. Belohnungssystem -->
                             <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                    <span class="mr-2">🎁</span> 4. Gutscheine
+                                <h3 class="text-base sm:text-xl font-bold text-gray-800 mb-4 text-center">
+                                    ⭐ Belohnungssystem ⭐
                                 </h3>
-                                <p class="text-gray-700 mb-2">Für Meilensteine erhältst du Gutscheine (Energierabatte, Partnerprämien, Sachgutscheine).</p>
-                                <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                    <li>Erscheinen im Menüpunkt "Gutscheine".</li>
-                                    <li>Jeder Gutschein hat eine Beschreibung, einen Wert und ein Ablaufdatum.</li>
-                                </ul>
-                            </div>
-
-                            <!-- 5. Profil -->
-                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                    <span class="mr-2">👤</span> 5. Profil & Daten
-                                </h3>
-                                <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                    <li>Verwaltung von Name, Adresse, E-Mail.</li>
-                                    <li>Einsicht des Empfehlungscodes und Fortschritts.</li>
-                                    <li>Daten werden nur für das Spiel und Belohnungen genutzt.</li>
-                                </ul>
-                            </div>
-
-                            <!-- 6. Belohnungssystem -->
-                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                    <span class="mr-2">⭐</span> 6. Belohnungssystem
-                                </h3>
-                                <div class="grid grid-cols-1 gap-2">
-                                    <div class="flex items-start">
-                                        <span class="font-bold w-32 shrink-0">Punkte:</span>
-                                        <span>Für Uploads, Empfehlungen und Quests.</span>
+                                <div class="space-y-3 text-gray-700 text-center">
+                                    <div>
+                                        <strong>1 Punkt</strong> → für Upload Strom-Jahresabrechnung → Angebotserstellung durch uns → Tarifoptimierung des Stromvertrages.
                                     </div>
-                                    <div class="flex items-start">
-                                        <span class="font-bold w-32 shrink-0">Level:</span>
-                                        <span>Kombination aus Aktivitäten.</span>
+                                    <div>
+                                        <strong>Level</strong> → basierend auf deiner Aktivität
                                     </div>
-                                    <div class="flex items-start">
-                                        <span class="font-bold w-32 shrink-0">Gutscheine:</span>
-                                        <span>Bei Meilensteinen.</span>
+                                    <div>
+                                        <strong>Gutscheine</strong> → bei wichtigen Meilensteinen
                                     </div>
                                 </div>
+                                <p class="text-gray-700 mt-4 text-center">
+                                    Alles greift ineinander – je aktiver du bist, desto mehr lohnt es sich.
+                                </p>
                             </div>
-                        </div>
 
-                        <!-- 7. Regeln -->
-                        <div class="mt-8 bg-red-50 p-6 rounded-lg border border-red-100">
-                            <h3 class="text-xl font-bold text-red-800 mb-4 flex items-center">
-                                <span class="mr-2">⚠️</span> 7. Regeln & Fair Play
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <ul class="list-disc list-inside space-y-1 text-red-700">
-                                    <li>Keine Fake-Profile</li>
-                                    <li>Keine mehrfachen Registrierungen</li>
-                                    <li>Keine künstlichen Uploads/KI-Bilder</li>
-                                    <li>Keine Manipulation am Empfehlungssystem</li>
+                            <!-- 6. Fair Play -->
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
+                                <h3 class="text-lg sm:text-xl font-bold text-red-800 mb-4 text-center">
+                                    ⚠️ Fair Play ⚠️
+                                </h3>
+                                <p class="text-gray-700 mb-3 text-center">EnergieQuest lebt von Ehrlichkeit. Nicht erlaubt:</p>
+                                <ul class="list-none space-y-2 text-gray-700 text-left mt-3" style="padding-left: 0;">
+                                    <li>• Fake-Profile</li>
+                                    <li>• Mehrfach-Registrierungen</li>
+                                    <li>• KI- oder manipulierte Uploads</li>
+                                    <li>• Missbrauch des Empfehlungssystems</li>
                                 </ul>
-                                <div class="bg-white p-3 rounded border border-red-100">
-                                    <p class="font-bold text-red-800 text-sm">Folgen bei Verstößen:</p>
-                                    <p class="text-sm text-red-600">Löschung von Punkten, Kontosperrung, Verlust von Gutscheinen.</p>
+                                <div class="bg-white p-3 rounded border border-red-200 mt-4">
+                                    <p class="font-bold text-red-800 text-sm text-center">🚫 Verstöße führen zu Punktabzug, Gutscheinverlust oder Kontosperre. 🚫</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 8. Gewinnen -->
-                        <div class="mt-8 bg-yellow-50 p-6 rounded-lg border border-yellow-100 text-center">
-                            <h3 class="text-xl font-bold text-yellow-800 mb-2 flex justify-center items-center">
-                                <span class="mr-2">🏆</span> 8. Wie man gewinnt
+                        <!-- 7. Wie man gewinnt -->
+                        <div class="mt-8 bg-white p-6 rounded-lg shadow-sm">
+                            <h3 class="text-base sm:text-xl font-bold text-gray-800 mb-4 text-center">
+                                🏆 Wie man gewinnt 🏆
                             </h3>
-                            <p class="text-yellow-800">
-                                Man „gewinnt“ EnergieQuest nicht einmalig — es ist ein laufendes Belohnungssystem.<br>
-                                Aktive Spieler erreichen höhere Level, mehr Gutscheine, bessere Badges und Bonus-Quests.
+                            <p class="text-gray-700 mb-3 text-center">
+                                EnergieQuest geht bis Level 7. Es ist ein Empfehlungs- und Belohnungssystem, wo der Spieler in Summe einen Gutscheinwert von insgesamt 315€ gewinnen kann.
                             </p>
+                            <p class="text-gray-700 text-center">
+                                <br>🔥 Aktive Spieler erreichen: höhere Level mehr Gutscheine.
+                            </p>
+                        </div>
+
+                        <!-- Abschluss -->
+                        <div class="mt-8">
+                            <div class="bg-white p-6 rounded-lg shadow-sm" style="background-color: #E1FEEA;">
+                                <p class="text-lg text-gray-700 font-semibold text-center">
+                                    Bereit für dein nächstes Level? Starte jetzt, senke deine Energiekosten, lade Freunde ein und hilf Ihnen ebenfalls dabei Ihre Energiekosten zu senken – und verwandle deinen Einsatz in echte Belohnungen. ⚡
+                                </p>
+                            </div>
                         </div>
                         
                         <div class="mt-8 text-center">
-                            <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150" style="background-color: #1A73E8 !important;" onmouseover="this.style.backgroundColor='#1765CC'" onmouseout="this.style.backgroundColor='#1A73E8'">
                                 Zurück zum Dashboard
                             </a>
                         </div>
@@ -169,10 +164,15 @@
         }
     </style>
     
+    <!-- Bottom Nav (Mobile) -->
     <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
         <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-house nav-icon text-xl"></i>
             <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-bolt nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Angebot</span>
         </a>
         <a href="{{ route('empfehlungen') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('empfehlungen') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-user-plus nav-icon text-xl"></i>
@@ -181,10 +181,6 @@
         <a href="{{ route('gutscheine') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('gutscheine') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-ticket nav-icon text-xl"></i>
             <span class="text-xs mt-1">Gutscheine</span>
-        </a>
-        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
-            <i class="fa-solid fa-cloud-arrow-up nav-icon text-xl"></i>
-            <span class="text-xs mt-1">Uploads</span>
         </a>
         <a href="{{ route('profile.edit') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('profile.edit') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-regular fa-user nav-icon text-xl"></i>

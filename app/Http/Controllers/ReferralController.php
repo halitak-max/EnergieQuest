@@ -32,12 +32,12 @@ class ReferralController extends Controller
         $levels = [
             ['level' => 0, 'required' => 0, 'reward' => 'Kein Gutschein', 'value' => 0, 'label' => 'Startlevel'],
             ['level' => 1, 'required' => 1, 'reward' => '15€', 'value' => 15, 'label' => '1 genehmigte Empfehlung'],
-            ['level' => 2, 'required' => 3, 'reward' => '25€', 'value' => 25, 'label' => 'Insgesamt 3 Empfehlungen'],
-            ['level' => 3, 'required' => 5, 'reward' => '35€', 'value' => 35, 'label' => 'Insgesamt 5 Empfehlungen'],
-            ['level' => 4, 'required' => 7, 'reward' => '45€', 'value' => 45, 'label' => 'Insgesamt 7 Empfehlungen'],
-            ['level' => 5, 'required' => 10, 'reward' => '55€', 'value' => 55, 'label' => 'Insgesamt 10 Empfehlungen'],
-            ['level' => 6, 'required' => 15, 'reward' => '65€', 'value' => 65, 'label' => 'Insgesamt 15 Empfehlungen'],
-            ['level' => 7, 'required' => 20, 'reward' => '75€', 'value' => 75, 'label' => 'Insgesamt 20 Empfehlungen'],
+            ['level' => 2, 'required' => 3, 'reward' => '25€', 'value' => 25, 'label' => 'Weitere 2 Empfehlungen'],
+            ['level' => 3, 'required' => 5, 'reward' => '35€', 'value' => 35, 'label' => 'Weitere 3 Empfehlungen'],
+            ['level' => 4, 'required' => 7, 'reward' => '45€', 'value' => 45, 'label' => 'Weitere 4 Empfehlungen'],
+            ['level' => 5, 'required' => 10, 'reward' => '55€', 'value' => 55, 'label' => 'Weitere 5 Empfehlungen'],
+            ['level' => 6, 'required' => 15, 'reward' => '65€', 'value' => 65, 'label' => 'Weitere 6 Empfehlungen'],
+            ['level' => 7, 'required' => 20, 'reward' => '75€', 'value' => 75, 'label' => 'Weitere 7 Empfehlungen'],
         ];
 
         // Calculate total earned
@@ -48,18 +48,31 @@ class ReferralController extends Controller
 
         // Next level logic
         $nextLevel = $currentLevel < 7 ? $levels[$currentLevel + 1] : null;
-        $needed = $nextLevel ? $nextLevel['required'] : 0;
+        $currentThreshold = $levels[$currentLevel]['required'] ?? 0;
+        $nextThreshold = $nextLevel ? $nextLevel['required'] : 0;
+        $needed = $nextThreshold;
         
-        // Progress Logic from DashboardController (Absolute)
+        // Extract additional referrals needed from label (e.g., "Weitere 3 Empfehlungen" -> 3)
+        $additionalForNextLevel = 0;
+        if ($nextLevel && isset($nextLevel['label'])) {
+            if (preg_match('/(\d+)/', $nextLevel['label'], $matches)) {
+                $additionalForNextLevel = (int)$matches[1];
+            }
+        }
+        
+        // Progress Logic: relative to current level
         $progress = 0;
         if ($nextLevel) {
-             if ($needed > 0) {
-                $progress = min(100, round(($approvedCount / $needed) * 100));
-             }
+            if ($nextThreshold > $currentThreshold) {
+                // Progress is relative to current level: (approved - current) / (next - current) * 100
+                $progressInRange = $approvedCount - $currentThreshold;
+                $rangeSize = $nextThreshold - $currentThreshold;
+                $progress = min(100, max(0, round(($progressInRange / $rangeSize) * 100)));
+            }
         } else {
             $progress = 100;
         }
 
-        return view('gutscheine', compact('currentLevel', 'levels', 'earnedTotal', 'approvedCount', 'nextLevel', 'progress', 'needed'));
+        return view('gutscheine', compact('currentLevel', 'levels', 'earnedTotal', 'approvedCount', 'nextLevel', 'progress', 'needed', 'currentThreshold', 'nextThreshold', 'additionalForNextLevel'));
     }
 }

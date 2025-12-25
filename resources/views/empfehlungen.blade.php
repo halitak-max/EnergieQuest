@@ -23,7 +23,7 @@
                     <h3 class="font-bold text-lg mb-4 text-center">Mein Status</h3>
                     <div class="stats-grid grid grid-cols-2 gap-4">
                         <div class="stat-card bg-gray-50 p-4 rounded text-center">
-                            <div class="stat-value text-xl font-bold" style="color: #15803D;">{{ $stats['success'] }}</div>
+                            <div class="stat-value text-xl font-bold" style="color: #6CB4EE;">{{ $stats['success'] }}</div>
                             <div class="stat-label text-sm text-gray-600">Erfolgreich</div>
                         </div>
                         <div class="stat-card bg-gray-50 p-4 rounded text-center">
@@ -54,7 +54,7 @@
                                             @if($referral->status == 0)
                                                 <span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">Registriert</span>
                                             @elseif($referral->status == 1)
-                                                <span class="px-2 py-1 font-semibold leading-tight text-blue-700 bg-blue-100 rounded-full">In Prüfung</span>
+                                                <span class="px-2 py-1 font-semibold leading-tight rounded-full" style="color: #7e22ce; background-color: #f3e8ff;">In Prüfung</span>
                                             @elseif($referral->status == 2)
                                                 <span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Genehmigt</span>
                                             @else
@@ -78,7 +78,7 @@
                     <p class="text-gray-600 mb-4 text-sm">
                         Teile meinen persönlichen Code mit Freunden. Für jede erfolgreiche Anmeldung erhalte ich Guthaben!
                     </p>
-                    <div class="referral-code-box bg-gray-100 p-3 rounded mb-4 font-mono text-xl">{{ Auth::user()->referral_code }}</div>
+                    <div class="referral-code-box bg-gray-100 p-3 rounded mb-4 font-mono text-xl" style="color: #6CB4EE; border-color: #6CB4EE;">{{ Auth::user()->referral_code }}</div>
                     
                      <div x-data="{ 
                         share() {
@@ -99,7 +99,7 @@
                         }
                     }">
                         <button @click="share" class="btn-share bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                            <i class="fa-solid fa-share-nodes"></i> Code teilen
+                            <i class="fa-solid fa-share-nodes"></i> Empfehlungscode teilen
                         </button>
                     </div>
                 </div>
@@ -110,11 +110,15 @@
         </div>
     </div>
     
-    <!-- Bottom Nav -->
+    <!-- Bottom Nav (Mobile) -->
     <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
         <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-house nav-icon text-xl"></i>
             <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
+            <i class="fa-solid fa-bolt nav-icon text-xl"></i>
+            <span class="text-xs mt-1">Angebot</span>
         </a>
         <a href="{{ route('empfehlungen') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('empfehlungen') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-user-plus nav-icon text-xl"></i>
@@ -123,10 +127,6 @@
         <a href="{{ route('gutscheine') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('gutscheine') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-solid fa-ticket nav-icon text-xl"></i>
             <span class="text-xs mt-1">Gutscheine</span>
-        </a>
-        <a href="{{ route('uploads.index') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('uploads.*') ? 'text-blue-600' : 'text-gray-500' }}">
-            <i class="fa-solid fa-cloud-arrow-up nav-icon text-xl"></i>
-            <span class="text-xs mt-1">Uploads</span>
         </a>
         <a href="{{ route('profile.edit') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('profile.edit') ? 'text-blue-600' : 'text-gray-500' }}">
             <i class="fa-regular fa-user nav-icon text-xl"></i>

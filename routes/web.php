@@ -32,13 +32,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/empfehlungen', [ReferralController::class, 'index'])->name('empfehlungen');
     Route::get('/gutscheine', [ReferralController::class, 'vouchers'])->name('gutscheine');
     
-    Route::get('/upload', [UploadController::class, 'index'])->name('uploads.index');
-    Route::post('/upload', [UploadController::class, 'store'])->name('uploads.store');
-    Route::delete('/upload/{upload}', [UploadController::class, 'destroy'])->name('uploads.destroy');
+    Route::get('/angebot', [UploadController::class, 'index'])->name('uploads.index');
+    Route::post('/angebot', [UploadController::class, 'store'])->name('uploads.store');
+    Route::delete('/angebot/{upload}', [UploadController::class, 'destroy'])->name('uploads.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/offer/accept', [UploadController::class, 'acceptOffer'])->name('offer.accept');
+    Route::get('/offer/status', [UploadController::class, 'getOfferStatus'])->name('offer.status');
+    Route::post('/appointment/store', [UploadController::class, 'storeAppointment'])->name('appointment.store');
 });
 
 // Admin Routes
@@ -53,6 +56,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth:admin')->group(function () {
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::patch('referrals/{referral}/status', [AdminDashboardController::class, 'updateReferralStatus'])->name('referrals.updateStatus');
+        Route::get('referrals/{referral}/eka', [AdminDashboardController::class, 'getReferralEkaData'])->name('referrals.getEka');
+        Route::post('referrals/{referral}/eka', [AdminDashboardController::class, 'saveEkaData'])->name('referrals.saveEka');
+        Route::get('users/{user}/eka', [AdminDashboardController::class, 'getUserEkaData'])->name('users.getEka');
+        Route::post('users/{user}/eka', [AdminDashboardController::class, 'saveUserEkaData'])->name('users.saveEka');
+        Route::patch('users/{user}/profile-lock', [AdminDashboardController::class, 'toggleProfileLock'])->name('users.toggleProfileLock');
         Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
     });
 });

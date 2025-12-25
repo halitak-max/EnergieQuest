@@ -26,7 +26,24 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+        
+        // Combine first_name and last_name into name
+        $name = trim($validated['first_name'] . ' ' . $validated['last_name']);
+        $validated['name'] = $name;
+        unset($validated['first_name'], $validated['last_name']);
+        
+        // Combine birth date components into birth_date
+        if (isset($validated['birth_day']) && isset($validated['birth_month']) && isset($validated['birth_year'])) {
+            $validated['birth_date'] = sprintf('%04d-%02d-%02d', 
+                $validated['birth_year'], 
+                $validated['birth_month'], 
+                $validated['birth_day']
+            );
+            unset($validated['birth_day'], $validated['birth_month'], $validated['birth_year']);
+        }
+        
+        $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
