@@ -1,52 +1,45 @@
-<div class="sm:hidden flex justify-center py-4">
-    <a href="{{ route('dashboard') }}">
-        <x-application-logo class="block h-10 w-auto fill-current text-gray-800 transition duration-300 ease-in-out hover:scale-105" />
-    </a>
-</div>
-
-<nav x-data="{ open: false }" class="bg-white hidden sm:block">
+<nav x-data="{ open: false }" class="bg-white/90 backdrop-blur-xl shadow-sm border-b border-blue-100/50 sticky top-0 z-40 transition-all duration-300 hidden sm:block">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
             <!-- Logo (Left) -->
-            <div class="flex-none flex items-center justify-start">
-                <a href="{{ route('dashboard') }}">
-                    <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                </a>
+            <div class="flex items-center">
+                <x-energiequest-logo />
             </div>
 
             <!-- Navigation Links (Center) -->
-            <div class="hidden space-x-8 sm:-my-px sm:flex sm:flex-1 sm:justify-center">
-                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    {{ __('Dashboard') }}
-                </x-nav-link>
-                <x-nav-link :href="route('uploads.index')" :active="request()->routeIs('uploads.*')">
-                    {{ __('Angebot') }}
-                </x-nav-link>
-                <x-nav-link :href="route('empfehlungen')" :active="request()->routeIs('empfehlungen')">
-                    {{ __('Empfehlungen') }}
-                </x-nav-link>
-                <x-nav-link :href="route('gutscheine')" :active="request()->routeIs('gutscheine')">
-                    {{ __('Gutscheine') }}
-                </x-nav-link>
-                <x-nav-link :href="route('datenschutz')" :active="request()->routeIs('datenschutz')">
-                    {{ __('Datenschutz') }}
-                </x-nav-link>
-            </div>
+            <nav class="hidden md:flex space-x-1">
+                <a href="{{ route('home') }}" class="px-4 py-2 text-sm font-medium rounded-xl cursor-pointer transition-all hover:bg-blue-100 hover:scale-105 {{ request()->routeIs('home') ? 'bg-blue-50 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-blue-50' }}">
+                    Home
+                </a>
+                <a href="{{ route('uploads.index') }}" class="px-4 py-2 text-sm font-medium rounded-xl cursor-pointer transition-all hover:bg-blue-100 hover:scale-105 {{ request()->routeIs('uploads.*') ? 'bg-blue-50 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-blue-50' }}">
+                    Angebot
+                </a>
+                <a href="{{ route('empfehlungen') }}" class="px-4 py-2 text-sm font-medium rounded-xl cursor-pointer transition-all hover:bg-blue-100 hover:scale-105 {{ request()->routeIs('empfehlungen') ? 'bg-blue-50 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-blue-50' }}">
+                    Empfehlungen
+                </a>
+                <a href="{{ route('gutscheine') }}" class="px-4 py-2 text-sm font-medium rounded-xl cursor-pointer transition-all hover:bg-blue-100 hover:scale-105 {{ request()->routeIs('gutscheine') ? 'bg-blue-50 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-blue-50' }}">
+                    Gutscheine
+                </a>
+                <a href="{{ route('datenschutz') }}" class="px-4 py-2 text-sm font-medium rounded-xl cursor-pointer transition-all hover:bg-blue-100 hover:scale-105 {{ request()->routeIs('datenschutz') ? 'bg-blue-50 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-blue-50' }}">
+                    Datenschutz
+                </a>
+            </nav>
 
             <!-- Settings Dropdown (Right) -->
-            <div class="hidden sm:flex sm:items-center sm:justify-end sm:flex-none">
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:block text-right">
+                    <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name }}</p>
+                    <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
+                </div>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div><i class="fa-regular fa-user mr-2"></i>{{ Auth::user()->name }}</div>
-
-                            <div class="ml-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-semibold cursor-pointer hover:shadow-lg transition-all">
+                            @php
+                                $initials = strtoupper(substr(Auth::user()->name, 0, 2));
+                            @endphp
+                            {{ $initials }}
+                        </div>
                     </x-slot>
 
                     <x-slot name="content">
@@ -83,8 +76,8 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+            <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                {{ __('Home') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('uploads.index')" :active="request()->routeIs('uploads.*')">
                 {{ __('Angebot') }}

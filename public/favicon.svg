@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <defs>
+    <linearGradient id="lightningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#EAB308;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F97316;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background matching logo container -->
+  <rect width="24" height="24" rx="5.5" fill="url(#lightningGradient)"/>
+  <!-- Lightbulb shape - exact path from Remix Icon ri-lightbulb-flash-fill -->
+  <path d="M9.778 21H14.222C14.65 21 15 20.664 15 20.25V19.5H9V20.25C9 20.664 9.35 21 9.778 21ZM12 2C8.686 2 6 4.686 6 8C6 10.378 7.19 12.47 9 13.74V17C9 17.552 9.448 18 10 18H14C14.552 18 15 17.552 15 17V13.74C16.81 12.47 18 10.378 18 8C18 4.686 15.314 2 12 2Z" fill="white" fill-rule="evenodd"/>
+  <!-- Lightning bolt inside - exact path from Remix Icon -->
+  <path d="M12 5L10.5 8H13.5L11 13L13.5 8H10.5L12 5Z" fill="white" fill-rule="evenodd"/>
+</svg>

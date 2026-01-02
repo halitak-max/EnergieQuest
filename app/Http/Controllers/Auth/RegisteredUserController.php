@@ -65,6 +65,7 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'email_verified_at' => now(), // Automatisch verifizieren
         ]);
 
         if ($request->referral_code) {

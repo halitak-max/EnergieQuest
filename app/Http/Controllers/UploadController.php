@@ -110,6 +110,19 @@ class UploadController extends Controller
             ], 400);
         }
 
+        // Prüfe ob der Slot bereits belegt ist
+        $existingAppointment = Appointment::where('appointment_date', $request->appointment_date)
+            ->where('appointment_time', $request->appointment_time)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->exists();
+        
+        if ($existingAppointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dieser Zeitslot ist bereits belegt. Bitte wählen Sie einen anderen Slot aus.'
+            ], 400);
+        }
+
         $user = Auth::user();
         
         $appointment = Appointment::create([
@@ -123,6 +136,60 @@ class UploadController extends Controller
             'success' => true,
             'message' => 'Termin erfolgreich gebucht',
             'appointment' => $appointment
+        ]);
+    }
+
+    public function getAvailableSlots(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $date = $request->date;
+
+        // Hole alle belegten Slots für dieses Datum
+        // Konvertiere TIME zu H:i Format (z.B. '14:45:00' zu '14:45')
+        $bookedSlots = Appointment::where('appointment_date', $date)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->get()
+            ->map(function($appointment) {
+                // Konvertiere TIME Format (H:i:s) zu H:i Format
+                $time = $appointment->appointment_time;
+                if (is_string($time)) {
+                    // Falls bereits im H:i Format
+                    if (strlen($time) === 5) {
+                        return $time;
+                    }
+                    // Falls im H:i:s Format, nimm nur H:i
+                    return substr($time, 0, 5);
+                }
+                // Falls Carbon/DateTime Objekt
+                return $time->format('H:i');
+            })
+            ->toArray();
+
+        // Generiere alle verfügbaren Slots von 09:00 bis 18:00 in 15-Minuten-Schritten
+        $allSlots = [];
+        for ($hour = 9; $hour < 18; $hour++) {
+            for ($minute = 0; $minute < 60; $minute += 15) {
+                $timeString = sprintf('%02d:%02d', $hour, $minute);
+                $allSlots[] = $timeString;
+            }
+        }
+
+        // Markiere Slots als belegt oder verfügbar
+        $slots = [];
+        foreach ($allSlots as $slot) {
+            $slots[] = [
+                'time' => $slot,
+                'available' => !in_array($slot, $bookedSlots, true) // Strict comparison
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'slots' => $slots,
+            'booked_slots' => $bookedSlots
         ]);
     }
 }

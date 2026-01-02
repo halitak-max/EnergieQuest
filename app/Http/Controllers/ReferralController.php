@@ -12,9 +12,21 @@ class ReferralController extends Controller
         $user = Auth::user();
         $referrals = $user->referrals()->with('referredUser')->latest()->get();
         
+        // Stats
+        $successCount = $user->referrals()->where('status', 2)->count();
+        $pendingCount = $user->referrals()->whereIn('status', [0, 1])->count();
+        
+        // This week's successful referrals
+        $thisWeekStart = now()->startOfWeek();
+        $thisWeekSuccess = $user->referrals()
+            ->where('status', 2)
+            ->where('created_at', '>=', $thisWeekStart)
+            ->count();
+        
         $stats = [
-            'success' => $user->referrals()->where('status', 2)->count(),
-            'pending' => $user->referrals()->where('status', 0)->count(),
+            'success' => $successCount,
+            'pending' => $pendingCount,
+            'this_week_success' => $thisWeekSuccess,
         ];
 
         return view('empfehlungen', compact('referrals', 'stats'));
@@ -68,11 +80,19 @@ class ReferralController extends Controller
                 $progressInRange = $approvedCount - $currentThreshold;
                 $rangeSize = $nextThreshold - $currentThreshold;
                 $progress = min(100, max(0, round(($progressInRange / $rangeSize) * 100)));
-            }
+             }
         } else {
             $progress = 100;
         }
 
-        return view('gutscheine', compact('currentLevel', 'levels', 'earnedTotal', 'approvedCount', 'nextLevel', 'progress', 'needed', 'currentThreshold', 'nextThreshold', 'additionalForNextLevel'));
+        // Generate voucher codes for unlocked levels
+        $voucherCodes = [];
+        for ($i = 1; $i <= $currentLevel && $i <= 6; $i++) {
+            if (isset($levels[$i]) && $levels[$i]['value'] > 0) {
+                $voucherCodes[$i] = 'ENERGIE' . $levels[$i]['value'];
+            }
+        }
+        
+        return view('gutscheine', compact('currentLevel', 'levels', 'earnedTotal', 'approvedCount', 'nextLevel', 'progress', 'needed', 'currentThreshold', 'nextThreshold', 'additionalForNextLevel', 'voucherCodes'));
     }
 }

@@ -25,8 +25,8 @@ Route::get('/', function () {
 
 Route::view('/datenschutz', 'datenschutz')->name('datenschutz');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/home', [DashboardController::class, 'index'])->name('home');
     Route::view('/spielregeln', 'spielregeln')->name('spielregeln');
     
     Route::get('/empfehlungen', [ReferralController::class, 'index'])->name('empfehlungen');
@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/offer/accept', [UploadController::class, 'acceptOffer'])->name('offer.accept');
     Route::get('/offer/status', [UploadController::class, 'getOfferStatus'])->name('offer.status');
     Route::post('/appointment/store', [UploadController::class, 'storeAppointment'])->name('appointment.store');
+    Route::get('/appointment/available-slots', [UploadController::class, 'getAvailableSlots'])->name('appointment.available-slots');
 });
 
 // Admin Routes

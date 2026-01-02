@@ -5,16 +5,59 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }} Admin</title>
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/icon.png') }}">
+        <title>{{ config('app.name', 'EnergieQuest') }} Admin</title>
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon.svg') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon.svg') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <script>
+            function saveReferralStatus(referralId) {
+                const select = document.getElementById(`master-status-select-${referralId}`);
+                const newStatus = select.value;
+                const originalStatus = select.dataset.currentStatus;
+                
+                // Disable select while saving
+                select.disabled = true;
+                
+                // Send AJAX request
+                fetch(`/admin/referrals/${referralId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        select.dataset.currentStatus = newStatus;
+                    } else {
+                        throw new Error('Update failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Revert to original status
+                    select.value = originalStatus;
+                    alert('Fehler beim Speichern des Status');
+                })
+                .finally(() => {
+                    select.disabled = false;
+                });
+            }
+            
             document.addEventListener('DOMContentLoaded', function() {
                 const saveButtons = document.querySelectorAll('.save-status-btn');
                 
@@ -88,9 +131,7 @@
                         <div class="flex">
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
-                                <a href="{{ route('admin.dashboard') }}">
-                                    <img src="{{ asset('assets/icon.png') }}" class="block h-9 w-auto" alt="Logo" />
-                                </a>
+                                <x-energiequest-logo />
                             </div>
 
                             <!-- Navigation Links -->
@@ -119,6 +160,167 @@
             <!-- Page Content -->
             <main class="py-12">
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+                    
+                    <!-- Combined Master Table -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6 bg-white border-b border-gray-200">
+                            <h3 class="font-bold text-lg mb-4">Master-Übersicht (Alle Daten kombiniert)</h3>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-Mail</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profilsperre</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploads</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Termine</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referrals</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-Mail Verifiziert</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registriert</th>
+                                            <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @forelse($users as $user)
+                                            @php
+                                                $userUploads = $uploads->where('user_id', $user->id);
+                                                $userAppointments = $appointments->where('user_id', $user->id);
+                                                $userReferralsAsReferrer = $referrals->where('referrer_id', $user->id);
+                                                $userReferralsAsReferred = $referrals->where('referred_user_id', $user->id);
+                                            @endphp
+                                            <tr>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->id }}</td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ $user->name }}</td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->email }}</td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->phone ?? '-' }}</td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                    <div class="flex gap-2">
+                                                        <button 
+                                                            type="button"
+                                                            class="profile-lock-btn px-2 py-1 text-xs font-semibold rounded-full hover:opacity-80 focus:outline-none cursor-pointer"
+                                                            style="{{ $user->offer_accepted ? 'background-color: #D1FAE5 !important; color: #15803D !important;' : 'background-color: #F3F4F6 !important; color: #9CA3AF !important;' }}"
+                                                            data-user-id="{{ $user->id }}"
+                                                            onclick="toggleProfileLock({{ $user->id }}, true)"
+                                                        >
+                                                            Ja
+                                                        </button>
+                                                        <button 
+                                                            type="button"
+                                                            class="profile-lock-btn px-2 py-1 text-xs font-semibold rounded-full hover:opacity-80 focus:outline-none cursor-pointer"
+                                                            style="{{ !$user->offer_accepted ? 'background-color: #FEE2E2 !important; color: #991B1B !important;' : 'background-color: #F3F4F6 !important; color: #9CA3AF !important;' }}"
+                                                            data-user-id="{{ $user->id }}"
+                                                            onclick="toggleProfileLock({{ $user->id }}, false)"
+                                                        >
+                                                            Nein
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 text-sm text-gray-900">
+                                                    @if($userUploads->count() > 0)
+                                                        <div class="space-y-1">
+                                                            @foreach($userUploads as $upload)
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="text-xs">{{ $upload->original_name }}</span>
+                                                                    <a href="{{ Storage::disk('public')->url($upload->file_path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 text-xs">
+                                                                        <i class="fa-solid fa-external-link"></i>
+                                                                    </a>
+                                                                </div>
+                                                                <span class="text-xs text-gray-500">{{ $upload->created_at->format('d.m.Y H:i') }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-400">-</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-4 text-sm text-gray-900">
+                                                    @if($userAppointments->count() > 0)
+                                                        <div class="space-y-1">
+                                                            @foreach($userAppointments as $appointment)
+                                                                <div class="text-xs">
+                                                                    <div>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d.m.Y') }} {{ $appointment->appointment_time }}</div>
+                                                                    @if($appointment->status === 'pending')
+                                                                        <span class="px-1 py-0.5 text-xs font-semibold text-yellow-700 bg-yellow-100 rounded">Ausstehend</span>
+                                                                    @elseif($appointment->status === 'confirmed')
+                                                                        <span class="px-1 py-0.5 text-xs font-semibold text-green-700 bg-green-100 rounded">Bestätigt</span>
+                                                                    @elseif($appointment->status === 'cancelled')
+                                                                        <span class="px-1 py-0.5 text-xs font-semibold text-red-700 bg-red-100 rounded">Abgesagt</span>
+                                                                    @endif
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-400">-</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-4 text-sm text-gray-900">
+                                                    <div class="space-y-1">
+                                                        @if($userReferralsAsReferrer->count() > 0)
+                                                            <div class="text-xs">
+                                                                <span class="font-semibold">Als Werber:</span>
+                                                                @foreach($userReferralsAsReferrer as $ref)
+                                                                    <div class="ml-2">
+                                                                        <span>{{ $ref->referredUser->name ?? 'N/A' }}</span>
+                                                                        <select 
+                                                                            class="referral-status-select border-gray-300 rounded text-xs ml-1"
+                                                                            data-referral-id="{{ $ref->id }}"
+                                                                            data-current-status="{{ $ref->status }}"
+                                                                            id="master-status-select-{{ $ref->id }}"
+                                                                            onchange="saveReferralStatus({{ $ref->id }})"
+                                                                        >
+                                                                            <option value="0" {{ $ref->status == 0 ? 'selected' : '' }}>0</option>
+                                                                            <option value="1" {{ $ref->status == 1 ? 'selected' : '' }}>1</option>
+                                                                            <option value="2" {{ $ref->status == 2 ? 'selected' : '' }}>2</option>
+                                                                        </select>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                        @if($userReferralsAsReferred->count() > 0)
+                                                            <div class="text-xs mt-1">
+                                                                <span class="font-semibold">Als Geworbener:</span>
+                                                                @foreach($userReferralsAsReferred as $ref)
+                                                                    <div class="ml-2">{{ $ref->referrer->name ?? 'N/A' }}</div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                        @if($userReferralsAsReferrer->count() == 0 && $userReferralsAsReferred->count() == 0)
+                                                            <span class="text-gray-400">-</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                    @if($user->email_verified_at)
+                                                        <span class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">Ja</span>
+                                                    @else
+                                                        <span class="px-2 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full">Nein</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->created_at->format('d.m.Y H:i') }}</td>
+                                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                    <button 
+                                                        type="button"
+                                                        class="eka-btn inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-black hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-300"
+                                                        style="background-color: #87CEEB;"
+                                                        data-user-id="{{ $user->id }}"
+                                                        onclick="openUserEkaModal({{ $user->id }})"
+                                                    >
+                                                        EKA
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="11" class="px-4 py-4 text-center text-sm text-gray-500">Keine User vorhanden</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Uploads Table -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

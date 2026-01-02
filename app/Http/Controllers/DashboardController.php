@@ -17,6 +17,14 @@ class DashboardController extends Controller
         // Stats
         $totalReferrals = $user->referrals()->count();
         $approvedReferrals = $user->referrals()->where('status', 2)->count();
+        $pendingReferrals = $user->referrals()->whereIn('status', [0, 1])->count();
+        
+        // Referrals this week
+        $thisWeekStart = now()->startOfWeek();
+        $thisWeekApproved = $user->referrals()
+            ->where('status', 2)
+            ->where('created_at', '>=', $thisWeekStart)
+            ->count();
         
         // Thresholds matching User model logic
         $thresholds = [
@@ -54,11 +62,11 @@ class DashboardController extends Controller
                 $progressInRange = $approvedReferrals - $currentThreshold;
                 $rangeSize = $nextThreshold - $currentThreshold;
                 $progress = min(100, max(0, round(($progressInRange / $rangeSize) * 100)));
-            }
+             }
         } else {
             $progress = 100;
         }
 
-        return view('dashboard', compact('user', 'currentLevel', 'totalReferrals', 'approvedReferrals', 'progress', 'needed', 'thresholds', 'currentThreshold', 'nextThreshold', 'additionalForNextLevel'));
+        return view('dashboard', compact('user', 'currentLevel', 'totalReferrals', 'approvedReferrals', 'pendingReferrals', 'thisWeekApproved', 'progress', 'needed', 'thresholds', 'currentThreshold', 'nextThreshold', 'additionalForNextLevel'));
     }
 }

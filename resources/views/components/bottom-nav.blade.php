@@ -16,7 +16,7 @@
 
 <!-- Bottom Nav (Mobile) -->
 <nav class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around py-2 sm:hidden z-50">
-    <a href="{{ route('dashboard') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500' }}">
+    <a href="{{ route('home') }}" class="nav-item flex flex-col items-center {{ request()->routeIs('home') ? 'text-blue-600' : 'text-gray-500' }}">
         <i class="fa-solid fa-house nav-icon text-xl"></i>
         <span class="text-xs mt-1">Home</span>
     </a>
