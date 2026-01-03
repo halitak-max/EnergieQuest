@@ -22,6 +22,12 @@
                 $city = $user->current_location;
             }
         }
+        
+        // Extract birth date components
+        $birthDate = old('birth_date', $user->birth_date);
+        $birthDay = $birthDate ? date('j', strtotime($birthDate)) : old('birth_day', '');
+        $birthMonth = $birthDate ? date('n', strtotime($birthDate)) : old('birth_month', '');
+        $birthYear = $birthDate ? date('Y', strtotime($birthDate)) : old('birth_year', '');
     @endphp
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
@@ -50,11 +56,11 @@
 
                     <!-- Navigation -->
                     <div class="space-y-1">
-                        <button onclick="showSection('profile')" id="btn-profile" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer whitespace-nowrap text-gray-700 hover:bg-gray-100">
+                        <button onclick="showSection('profile')" id="btn-profile" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer whitespace-nowrap bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md">
                             <i class="ri-user-line text-lg"></i>
                             <span>Profilinformationen</span>
                         </button>
-                        <button onclick="showSection('security')" id="btn-security" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer whitespace-nowrap bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md">
+                        <button onclick="showSection('security')" id="btn-security" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer whitespace-nowrap text-gray-700 hover:bg-gray-100">
                             <i class="ri-shield-line text-lg"></i>
                             <span>Sicherheit</span>
                         </button>
@@ -69,7 +75,7 @@
             <!-- Main Content -->
             <div class="lg:col-span-3">
                 <!-- Profile Information Section -->
-                <div id="section-profile" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hidden">
+                <div id="section-profile" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900 mb-6">Profilinformationen</h2>
                         <form method="post" action="{{ route('profile.update') }}" class="space-y-6">
@@ -102,6 +108,53 @@
                             </div>
 
                             <div>
+                                <label for="iban" class="block text-sm font-medium text-gray-700 mb-2">IBAN</label>
+                                <input id="iban" name="iban" type="text" value="{{ old('iban', $user->iban) }}" autocomplete="off" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                <x-input-error class="mt-2" :messages="$errors->get('iban')" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Geburtsdatum</label>
+                                <div class="flex gap-2">
+                                    <select id="birth_day" name="birth_day" class="block w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" required>
+                                        <option value="">Tag</option>
+                                        @for($i = 1; $i <= 31; $i++)
+                                            <option value="{{ $i }}" {{ $birthDay == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                        @endfor
+                                    </select>
+                                    <select id="birth_month" name="birth_month" class="block w-32 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" required>
+                                        <option value="">Monat</option>
+                                        <option value="1" {{ $birthMonth == 1 ? 'selected' : '' }}>Januar</option>
+                                        <option value="2" {{ $birthMonth == 2 ? 'selected' : '' }}>Februar</option>
+                                        <option value="3" {{ $birthMonth == 3 ? 'selected' : '' }}>März</option>
+                                        <option value="4" {{ $birthMonth == 4 ? 'selected' : '' }}>April</option>
+                                        <option value="5" {{ $birthMonth == 5 ? 'selected' : '' }}>Mai</option>
+                                        <option value="6" {{ $birthMonth == 6 ? 'selected' : '' }}>Juni</option>
+                                        <option value="7" {{ $birthMonth == 7 ? 'selected' : '' }}>Juli</option>
+                                        <option value="8" {{ $birthMonth == 8 ? 'selected' : '' }}>August</option>
+                                        <option value="9" {{ $birthMonth == 9 ? 'selected' : '' }}>September</option>
+                                        <option value="10" {{ $birthMonth == 10 ? 'selected' : '' }}>Oktober</option>
+                                        <option value="11" {{ $birthMonth == 11 ? 'selected' : '' }}>November</option>
+                                        <option value="12" {{ $birthMonth == 12 ? 'selected' : '' }}>Dezember</option>
+                                    </select>
+                                    <select id="birth_year" name="birth_year" class="block w-24 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" required>
+                                        <option value="">Jahr</option>
+                                        @php
+                                            $currentYear = date('Y');
+                                            $minYear = $currentYear - 100;
+                                        @endphp
+                                        @for($year = $currentYear - 13; $year >= $minYear; $year--)
+                                            <option value="{{ $year }}" {{ $birthYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <x-input-error class="mt-2" :messages="$errors->get('birth_date')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('birth_day')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('birth_month')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('birth_year')" />
+                            </div>
+
+                            <div>
                                 <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
                                 <input id="address" name="address" type="text" value="{{ $address }}" autocomplete="street-address" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                             </div>
@@ -131,7 +184,7 @@
                 </div>
 
                 <!-- Security Section -->
-                <div id="section-security" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div id="section-security" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hidden">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900 mb-6">Sicherheit</h2>
                         <div class="space-y-6">
@@ -349,9 +402,9 @@
             }
         }
 
-        // Initial active section - show Security by default
+        // Initial active section - show Profile by default
         document.addEventListener('DOMContentLoaded', () => {
-            showSection('security');
+            showSection('profile');
         });
     </script>
 </x-app-layout>

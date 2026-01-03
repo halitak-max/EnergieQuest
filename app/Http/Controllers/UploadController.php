@@ -18,7 +18,25 @@ class UploadController extends Controller
         $uploads = Auth::user()->uploads()->latest()->get();
         // Get current user with EKA data
         $user = Auth::user();
-        return view('uploads.index', compact('uploads', 'user'));
+        
+        // Get next upcoming appointment (only future appointments)
+        $nextAppointment = $user->appointments()
+            ->where('appointment_date', '>=', now()->format('Y-m-d'))
+            ->where(function($query) {
+                $query->where('appointment_date', '>', now()->format('Y-m-d'))
+                    ->orWhere(function($q) {
+                        $q->where('appointment_date', '=', now()->format('Y-m-d'))
+                          ->where('appointment_time', '>', now()->format('H:i'));
+                    });
+            })
+            ->orderBy('appointment_date')
+            ->orderBy('appointment_time')
+            ->get()
+            ->first(function ($appointment) {
+                return $appointment->status !== 'cancelled';
+            });
+        
+        return view('uploads.index', compact('uploads', 'user', 'nextAppointment'));
     }
 
     public function store(Request $request)
@@ -26,6 +44,15 @@ class UploadController extends Controller
         $request->validate([
             'file' => 'required|file|max:10240', // 10MB max
         ]);
+
+        $user = Auth::user();
+        
+        // Prüfe ob User bereits 3 Uploads hat
+        $uploadCount = $user->uploads()->count();
+        if ($uploadCount >= 3) {
+            return redirect()->route('uploads.index')
+                ->with('error', 'Sie haben bereits das Maximum von 3 Uploads erreicht. Bitte löschen Sie zuerst eine Datei, um eine neue hochzuladen.');
+        }
 
         // Standard local storage (public disk)
         $path = $request->file('file')->store('uploads', 'public');
@@ -78,6 +105,9 @@ class UploadController extends Controller
             'offer_accepted' => true
         ]);
         
+        // Setze Session-Variable für die Informationsmeldung
+        session()->put('show_offer_accepted_message_' . $user->id, true);
+        
         return response()->json([
             'success' => true,
             'message' => 'Angebot erfolgreich angenommen'
@@ -110,20 +140,41 @@ class UploadController extends Controller
             ], 400);
         }
 
-        // Prüfe ob der Slot bereits belegt ist
-        $existingAppointment = Appointment::where('appointment_date', $request->appointment_date)
-            ->where('appointment_time', $request->appointment_time)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->exists();
+        $user = Auth::user();
+        
+        // Prüfe ob User bereits einen zukünftigen Termin hat (nur aktive Termine, keine stornierten)
+        // Hole alle zukünftigen Termine und filtere dann in PHP, um sicherzustellen, dass stornierte ausgeschlossen werden
+        $allFutureAppointments = $user->appointments()
+            ->where(function($query) {
+                $query->where('appointment_date', '>', now()->format('Y-m-d'))
+                    ->orWhere(function($q) {
+                        $q->where('appointment_date', '=', now()->format('Y-m-d'))
+                          ->where('appointment_time', '>', now()->format('H:i'));
+                    });
+            })
+            ->get();
+        
+        // Filtere stornierte Termine raus
+        $existingAppointment = $allFutureAppointments->first(function($appointment) {
+            return $appointment->status !== 'cancelled';
+        });
+        
+        // Debug: Log den gefundenen Termin (kann später entfernt werden)
+        if ($existingAppointment) {
+            \Log::info('Existing appointment found', [
+                'id' => $existingAppointment->id,
+                'status' => $existingAppointment->status,
+                'date' => $existingAppointment->appointment_date,
+                'time' => $existingAppointment->appointment_time
+            ]);
+        }
         
         if ($existingAppointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'Dieser Zeitslot ist bereits belegt. Bitte wählen Sie einen anderen Slot aus.'
+                'message' => 'Sie haben bereits einen Termin gebucht. Bitte stornieren Sie zuerst Ihren bestehenden Termin.'
             ], 400);
         }
-
-        $user = Auth::user();
         
         $appointment = Appointment::create([
             'user_id' => $user->id,
@@ -141,55 +192,106 @@ class UploadController extends Controller
 
     public function getAvailableSlots(Request $request)
     {
-        $request->validate([
-            'date' => 'required|date|after_or_equal:today',
-        ]);
-
-        $date = $request->date;
-
-        // Hole alle belegten Slots für dieses Datum
-        // Konvertiere TIME zu H:i Format (z.B. '14:45:00' zu '14:45')
-        $bookedSlots = Appointment::where('appointment_date', $date)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->get()
-            ->map(function($appointment) {
-                // Konvertiere TIME Format (H:i:s) zu H:i Format
-                $time = $appointment->appointment_time;
-                if (is_string($time)) {
-                    // Falls bereits im H:i Format
-                    if (strlen($time) === 5) {
-                        return $time;
-                    }
-                    // Falls im H:i:s Format, nimm nur H:i
-                    return substr($time, 0, 5);
-                }
-                // Falls Carbon/DateTime Objekt
-                return $time->format('H:i');
-            })
-            ->toArray();
-
-        // Generiere alle verfügbaren Slots von 09:00 bis 18:00 in 15-Minuten-Schritten
-        $allSlots = [];
-        for ($hour = 9; $hour < 18; $hour++) {
-            for ($minute = 0; $minute < 60; $minute += 15) {
-                $timeString = sprintf('%02d:%02d', $hour, $minute);
-                $allSlots[] = $timeString;
-            }
+        $date = $request->input('date');
+        if (!$date) {
+            return response()->json(['success' => false, 'message' => 'Datum fehlt'], 400);
         }
 
-        // Markiere Slots als belegt oder verfügbar
+        // Prüfe Wochentag
+        try {
+            $selectedDate = new \DateTime($date);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Ungültiges Datum'], 400);
+        }
+
+        $dayOfWeek = (int) $selectedDate->format('w'); // 0 = Sonntag, 6 = Samstag
+        
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) {
+             return response()->json([
+                'success' => true,
+                'slots' => [], // Leeres Array signalisiert keine Slots
+                'message' => 'Keine Termine am Wochenende'
+            ]);
+        }
+
+        $start = new \DateTime($date . ' 09:00:00');
+        $end = new \DateTime($date . ' 18:00:00');
+        $interval = new \DateInterval('PT15M');
         $slots = [];
-        foreach ($allSlots as $slot) {
+
+        // Bereits gebuchte Termine abrufen
+        // Wir nehmen an, dass 'appointment_time' im Format 'H:i' gespeichert ist (z.B. "09:15")
+        $bookedAppointments = Appointment::where('appointment_date', $date)
+            ->where('status', '!=', 'cancelled') // Nur aktive Termine berücksichtigen
+            ->pluck('appointment_time')
+            ->toArray();
+
+        // Wenn das Datum heute ist, filtere vergangene Zeiten raus
+        $now = new \DateTime();
+        $isToday = $selectedDate->format('Y-m-d') === $now->format('Y-m-d');
+
+        for ($time = clone $start; $time < $end; $time->add($interval)) {
+            $timeString = $time->format('H:i');
+            
+            $isAvailable = !in_array($timeString, $bookedAppointments);
+
+            // Falls heute, prüfe ob Zeit schon vorbei ist (plus Puffer von z.B. 1 Stunde)
+            if ($isToday) {
+                $slotTime = new \DateTime($date . ' ' . $timeString);
+                // Mindestens 1 Stunde in der Zukunft
+                if ($slotTime <= (clone $now)->modify('+1 hour')) {
+                    $isAvailable = false;
+                }
+            }
+
             $slots[] = [
-                'time' => $slot,
-                'available' => !in_array($slot, $bookedSlots, true) // Strict comparison
+                'time' => $timeString,
+                'available' => $isAvailable
             ];
         }
 
         return response()->json([
             'success' => true,
-            'slots' => $slots,
-            'booked_slots' => $bookedSlots
+            'slots' => $slots
+        ]);
+    }
+
+    public function cancelAppointment(Request $request, Appointment $appointment)
+    {
+        $user = Auth::user();
+        
+        // Prüfe ob der Termin dem User gehört
+        if ($appointment->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sie haben keine Berechtigung, diesen Termin zu stornieren.'
+            ], 403);
+        }
+        
+        // Prüfe ob der Termin in der Zukunft liegt
+        $appointmentDateTime = new \DateTime($appointment->appointment_date->format('Y-m-d') . ' ' . $appointment->appointment_time);
+        if ($appointmentDateTime < new \DateTime()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vergangene Termine können nicht storniert werden.'
+            ], 400);
+        }
+        
+        // Storniere den Termin - setze Status auf 'cancelled'
+        $appointment->status = 'cancelled';
+        $appointment->save();
+        
+        // Debug: Log die Stornierung
+        \Log::info('Appointment cancelled', [
+            'id' => $appointment->id,
+            'status' => $appointment->status,
+            'date' => $appointment->appointment_date,
+            'time' => $appointment->appointment_time
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Termin erfolgreich storniert'
         ]);
     }
 }

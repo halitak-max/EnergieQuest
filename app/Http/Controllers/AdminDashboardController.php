@@ -12,12 +12,59 @@ class AdminDashboardController extends Controller
 {
     public function index()
     {
+        // Übersichtsseite - zeigt Statistiken und Links zu den einzelnen Tabellen
+        $stats = [
+            'users_with_accepted_offer' => User::where('offer_accepted', true)->count(),
+            'total_users' => User::count(),
+            'total_uploads' => Upload::count(),
+            'total_appointments' => Appointment::count(),
+            'total_referrals' => Referral::count(),
+        ];
+
+        return view('admin.dashboard', compact('stats'));
+    }
+
+    public function acceptedOffers()
+    {
+        $uploads = Upload::with('user')->latest()->get();
+        $appointments = Appointment::with('user')->orderBy('appointment_date')->orderBy('appointment_time')->get();
+        $usersWithAcceptedOffer = User::where('offer_accepted', true)->with('referrer')->latest()->get();
+
+        return view('admin.accepted-offers', compact('uploads', 'appointments', 'usersWithAcceptedOffer'));
+    }
+
+    public function masterOverview()
+    {
         $uploads = Upload::with('user')->latest()->get();
         $referrals = Referral::with(['referrer', 'referredUser'])->latest()->get();
         $users = User::with('referrer')->latest()->get();
         $appointments = Appointment::with('user')->orderBy('appointment_date')->orderBy('appointment_time')->get();
 
-        return view('admin.dashboard', compact('uploads', 'referrals', 'users', 'appointments'));
+        return view('admin.master-overview', compact('uploads', 'referrals', 'users', 'appointments'));
+    }
+
+    public function uploads()
+    {
+        $uploads = Upload::with('user')->latest()->get();
+        return view('admin.uploads', compact('uploads'));
+    }
+
+    public function referrals()
+    {
+        $referrals = Referral::with(['referrer', 'referredUser'])->latest()->get();
+        return view('admin.referrals', compact('referrals'));
+    }
+
+    public function appointments()
+    {
+        $appointments = Appointment::with('user')->orderBy('appointment_date')->orderBy('appointment_time')->get();
+        return view('admin.appointments', compact('appointments'));
+    }
+
+    public function users()
+    {
+        $users = User::with('referrer')->latest()->get();
+        return view('admin.users', compact('users'));
     }
 
     public function getUserEkaData(User $user)
@@ -240,6 +287,16 @@ class AdminDashboardController extends Controller
             'message' => $request->locked ? 'Profil gesperrt' : 'Profil freigeschaltet',
             'locked' => $request->locked,
             'was_unlocked' => $isUnlocking,
+        ]);
+    }
+
+    public function destroyAppointment(Appointment $appointment)
+    {
+        $appointment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Termin erfolgreich gelöscht',
         ]);
     }
 }
