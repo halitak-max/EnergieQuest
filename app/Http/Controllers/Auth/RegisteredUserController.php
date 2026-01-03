@@ -65,7 +65,7 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
-            'email_verified_at' => now(), // Automatisch verifizieren
+            // email_verified_at wird nicht gesetzt - User muss E-Mail verifizieren
         ]);
 
         if ($request->referral_code) {
@@ -80,10 +80,18 @@ class RegisteredUserController extends Controller
             }
         }
 
-        event(new Registered($user));
-
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        // Versuche E-Mail-Verifizierungs-E-Mail zu senden
+        // Fehler werden abgefangen, damit die Registrierung trotzdem erfolgreich ist
+        try {
+            event(new Registered($user));
+        } catch (\Exception $e) {
+            // Logge den Fehler, aber lasse die Registrierung trotzdem erfolgreich sein
+            \Log::error('Fehler beim Versenden der Verifizierungs-E-Mail: ' . $e->getMessage());
+        }
+
+        // Weiterleitung zur E-Mail-Verifizierungsseite
+        return redirect()->route('verification.notice')->with('status', 'registered');
     }
 }

@@ -18,8 +18,14 @@ class EmailVerificationNotificationController extends Controller
             return redirect()->intended(RouteServiceProvider::HOME);
         }
 
-        $request->user()->sendEmailVerificationNotification();
-
-        return back()->with('status', 'verification-link-sent');
+        try {
+            $request->user()->sendEmailVerificationNotification();
+            return back()->with('status', 'verification-link-sent');
+        } catch (\Exception $e) {
+            // Logge den Fehler
+            \Log::error('Fehler beim Versenden der Verifizierungs-E-Mail: ' . $e->getMessage());
+            // Zeige dem User eine Fehlermeldung
+            return back()->with('error', 'Die E-Mail konnte nicht gesendet werden. Bitte überprüfen Sie Ihre E-Mail-Konfiguration oder versuchen Sie es später erneut.');
+        }
     }
 }

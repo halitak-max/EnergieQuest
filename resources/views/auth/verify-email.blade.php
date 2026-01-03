@@ -1,11 +1,23 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Danke für die Anmeldung! Bevor Sie loslegen, bestätigen Sie bitte Ihre E-Mail-Adresse über den Link, den wir Ihnen gerade gesendet haben. Falls Sie keine E-Mail erhalten haben, senden wir Ihnen gerne eine neue.') }}
-    </div>
+    @if (session('status') == 'registered')
+        <div class="mb-4 text-sm text-gray-600">
+            {{ __('Danke für die Registrierung! Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen gesendet haben. Falls Sie keine E-Mail erhalten haben, können Sie unten eine neue anfordern.') }}
+        </div>
+    @else
+        <div class="mb-4 text-sm text-gray-600">
+            {{ __('Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen gesendet haben. Falls Sie keine E-Mail erhalten haben, senden wir Ihnen gerne eine neue.') }}
+        </div>
+    @endif
 
     @if (session('status') == 'verification-link-sent')
         <div class="mb-4 font-medium text-sm text-green-600">
             {{ __('Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet.') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 font-medium text-sm text-red-600">
+            {{ session('error') }}
         </div>
     @endif
 
