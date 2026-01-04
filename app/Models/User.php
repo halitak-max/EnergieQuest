@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'referral_code',
         'full_name',
         'offer_accepted',
+        'completed',
         'current_provider', 'current_tariff', 'current_location', 'current_consumption',
         'current_months', 'current_working_price', 'current_basic_price', 'current_total',
         'new_provider', 'new_tariff', 'new_location', 'new_consumption',

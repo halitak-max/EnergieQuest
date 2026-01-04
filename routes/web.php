@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/quick-update', [ProfileController::class, 'quickUpdate'])->name('profile.quick-update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/offer/accept', [UploadController::class, 'acceptOffer'])->name('offer.accept');
     Route::get('/offer/status', [UploadController::class, 'getOfferStatus'])->name('offer.status');
@@ -69,6 +70,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('users/{user}/eka', [AdminDashboardController::class, 'getUserEkaData'])->name('users.getEka');
         Route::post('users/{user}/eka', [AdminDashboardController::class, 'saveUserEkaData'])->name('users.saveEka');
         Route::patch('users/{user}/profile-lock', [AdminDashboardController::class, 'toggleProfileLock'])->name('users.toggleProfileLock');
+        Route::patch('users/{user}/completed', [AdminDashboardController::class, 'toggleCompleted'])->name('users.toggleCompleted');
+        Route::delete('users/{user}', [AdminDashboardController::class, 'destroyUser'])->name('users.destroy');
         Route::delete('appointments/{appointment}', [AdminDashboardController::class, 'destroyAppointment'])->name('appointments.destroy');
         Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
     });

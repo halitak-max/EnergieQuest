@@ -55,6 +55,55 @@ class ProfileController extends Controller
     }
 
     /**
+     * Quick update for IBAN and birth date only.
+     */
+    public function quickUpdate(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'iban' => ['required', 'string', 'max:34'],
+                'birth_day' => ['required', 'integer', 'min:1', 'max:31'],
+                'birth_month' => ['required', 'integer', 'min:1', 'max:12'],
+                'birth_year' => ['required', 'integer', 'min:' . (date('Y') - 100), 'max:' . (date('Y') - 13)],
+            ]);
+
+            // Validate date
+            if (!checkdate($validated['birth_month'], $validated['birth_day'], $validated['birth_year'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ungültiges Datum',
+                    'errors' => [
+                        'birth_date' => ['Bitte wählen Sie ein gültiges Geburtsdatum aus.']
+                    ]
+                ], 422);
+            }
+
+            // Combine birth date components into birth_date
+            $birthDate = sprintf('%04d-%02d-%02d', 
+                $validated['birth_year'], 
+                $validated['birth_month'], 
+                $validated['birth_day']
+            );
+
+            $request->user()->update([
+                'iban' => $validated['iban'],
+                'birth_date' => $birthDate,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil erfolgreich aktualisiert',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validierungsfehler',
+                'errors' => $e->errors()
+            ], 422);
+        }
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

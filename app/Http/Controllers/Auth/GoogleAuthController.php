@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -23,7 +24,7 @@ class GoogleAuthController extends Controller
     /**
      * Obtain the user information from Google.
      */
-    public function handleGoogleCallback(): RedirectResponse
+    public function handleGoogleCallback(Request $request): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
@@ -52,7 +53,11 @@ class GoogleAuthController extends Controller
                 Auth::login($user, true);
             }
 
-            return redirect()->intended(route('home'));
+            // Session regenerieren (wichtig für Sicherheit)
+            $request->session()->regenerate();
+
+            // Direkt zur Home-Seite weiterleiten
+            return redirect()->route('home');
         } catch (\Exception $e) {
             \Log::error('Google OAuth Error: ' . $e->getMessage());
             return redirect()->route('login')->with('error', 'Fehler beim Anmelden mit Google. Bitte versuchen Sie es erneut.');

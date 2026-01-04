@@ -67,6 +67,7 @@
                     $showOfferAcceptedMessage = session()->get('show_offer_accepted_message_' . $user->id, false);
                     $showUnlockedMessage = session()->get('show_offer_unlocked_message_' . $user->id, false);
                     $showAlmostDoneMessage = session()->get('show_offer_almost_done_message_' . $user->id, false);
+                    $showCompletedMessage = session()->get('show_completed_message_' . $user->id, false);
                     $hasAppointment = $user->appointments()->exists();
                     
                     if ($showOfferAcceptedMessage) {
@@ -78,27 +79,152 @@
                     if ($showAlmostDoneMessage) {
                         session()->forget('show_offer_almost_done_message_' . $user->id);
                     }
+                    if ($showCompletedMessage) {
+                        session()->forget('show_completed_message_' . $user->id);
+                    }
                 @endphp
 
             <!-- Informationsmeldung nach Annahme des Angebots -->
-            <div id="offer-accepted-info-message" class="px-6 py-4 rounded-2xl relative mb-6 text-center {{ $showOfferAcceptedMessage ? '' : 'hidden' }}" role="alert" style="background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); border: 2px solid #0EA5E9; color: #0C4A6E;">
-                <div class="flex items-center justify-center gap-3 mb-2">
-                    <i class="ri-mail-send-line text-3xl" style="color: #0EA5E9;"></i>
-                    <h3 class="text-xl font-bold">Ihr optimierter Vertrag wird erstellt</h3>
+            <div id="offer-accepted-info-message" class="fixed inset-0 flex items-center justify-center z-40 {{ $showOfferAcceptedMessage ? '' : 'hidden' }}">
+                <div class="px-6 py-4 rounded-2xl relative text-center max-w-2xl mx-4" role="alert" style="background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); border: 2px solid #0EA5E9; color: #0C4A6E;">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <i class="ri-mail-send-line text-3xl" style="color: #0EA5E9;"></i>
+                        <h3 class="text-xl font-bold">Ihr optimierter Vertrag wird erstellt</h3>
+                    </div>
+                    <p class="text-base font-semibold">Ihr optimierter Vertrag wird derzeit für Sie erstellt und Ihnen in Kürze per E-Mail zugesendet.</p>
                 </div>
-                <p class="text-base font-semibold mb-1">Ihr optimierter Vertrag wird derzeit für Sie erstellt und Ihnen in Kürze per E-Mail zugesendet.</p>
-                <p class="text-base font-semibold">Bitte prüfen Sie Ihre E-Mails und unterschreiben Sie den Vertrag, um den Wechsel zu vollziehen.</p>
             </div>
 
-            <div id="profile-unlocked-message" class="px-4 py-3 rounded relative mb-6 text-center {{ $showUnlockedMessage && $hasAppointment ? '' : 'hidden' }}" role="alert" style="background-color: #E1FEEA; border: 1px solid #22c55e; color: #166534;">
-                    <span class="block sm:inline font-bold">Super. Dein Stromtarif wurde optimiert! Bitte schaue in deine E-Mails dort kannst du ganz einfach den Auftrag unterschreiben und einreichen.</span>
+            <!-- Glückwunsch-Meldung nach Erledigt-Markierung -->
+            <div id="completed-info-message" class="fixed inset-0 flex items-center justify-center z-40 {{ $showCompletedMessage ? '' : 'hidden' }}">
+                <div class="px-6 py-4 rounded-2xl relative text-center max-w-2xl mx-4" role="alert" style="background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); border: 2px solid #0EA5E9; color: #0C4A6E;">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <i class="ri-checkbox-circle-line text-3xl" style="color: #0EA5E9;"></i>
+                        <h3 class="text-xl font-bold">Herzlichen Glückwunsch</h3>
+                    </div>
+                    <p class="text-base font-semibold">Sie haben Ihren Stromtarif erfolgreich optimiert.</p>
                 </div>
-            <div id="profile-almost-done-message" class="px-4 py-3 rounded relative mb-6 text-center {{ $showAlmostDoneMessage && !$hasAppointment ? '' : 'hidden' }}" role="alert" style="background-color: #E1FEEA; border: 1px solid #22c55e; color: #166534;">
-                    <span class="block sm:inline font-bold">Super. Fast geschafft! Dein Stromtarif wurde optimiert. Schaue Bitte in deine E-mails. Wir benötigen noch deine Unterschrift.</span>
+            </div>
+
+            <!-- IBAN/Geburtsdatum Warnung -->
+            <div id="iban-warning-message" class="px-6 py-5 rounded-2xl relative mb-6 hidden" role="alert" style="background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); border: 2px solid #0EA5E9; color: #0C4A6E;">
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <i class="ri-alert-line text-3xl" style="color: #0EA5E9;"></i>
+                    <h3 class="text-xl font-bold">Bitte vervollständigen Sie Ihr Profil</h3>
                 </div>
+                <p class="text-base font-semibold mb-4 text-center">Bitte fülle die Felder <strong>IBAN</strong> und <strong>Geburtsdatum</strong> aus, bevor du das Angebot annehmen kannst.</p>
+                
+                <form id="quick-profile-form" class="max-w-md mx-auto">
+                    @csrf
+                    <div class="mb-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <label for="quick_iban" class="block text-sm font-semibold" style="color: #0C4A6E;">IBAN</label>
+                            <button 
+                                type="button" 
+                                onclick="openIbanInfoModal()"
+                                class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-orange-300"
+                                style="background-color: transparent; color: #F97316;"
+                                onmouseover="this.style.color='#EA580C'"
+                                onmouseout="this.style.color='#F97316'"
+                                title="Informationen zur IBAN"
+                            >
+                                <i class="ri-information-line"></i>
+                            </button>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="quick_iban" 
+                            name="iban" 
+                            value="{{ $user->iban ?? '' }}"
+                            class="w-full px-4 py-2 rounded-lg border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                            placeholder="DE89 3704 0044 0532 0130 00"
+                            maxlength="34"
+                        >
+                        <div id="iban-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2" style="color: #0C4A6E;">Geburtsdatum</label>
+                        <div class="flex gap-2 justify-center">
+                            @php
+                                $birthDay = $user->birth_date ? \Carbon\Carbon::parse($user->birth_date)->day : '';
+                                $birthMonth = $user->birth_date ? \Carbon\Carbon::parse($user->birth_date)->month : '';
+                                $birthYear = $user->birth_date ? \Carbon\Carbon::parse($user->birth_date)->year : '';
+                            @endphp
+                            <select id="quick_birth_day" name="birth_day" class="block w-20 rounded-lg border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none px-2 py-2">
+                                <option value="">Tag</option>
+                                @for($day = 1; $day <= 31; $day++)
+                                    <option value="{{ $day }}" {{ $birthDay == $day ? 'selected' : '' }}>{{ $day }}</option>
+                                @endfor
+                            </select>
+                            <select id="quick_birth_month" name="birth_month" class="block w-32 rounded-lg border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none px-2 py-2">
+                                <option value="">Monat</option>
+                                <option value="1" {{ $birthMonth == 1 ? 'selected' : '' }}>Januar</option>
+                                <option value="2" {{ $birthMonth == 2 ? 'selected' : '' }}>Februar</option>
+                                <option value="3" {{ $birthMonth == 3 ? 'selected' : '' }}>März</option>
+                                <option value="4" {{ $birthMonth == 4 ? 'selected' : '' }}>April</option>
+                                <option value="5" {{ $birthMonth == 5 ? 'selected' : '' }}>Mai</option>
+                                <option value="6" {{ $birthMonth == 6 ? 'selected' : '' }}>Juni</option>
+                                <option value="7" {{ $birthMonth == 7 ? 'selected' : '' }}>Juli</option>
+                                <option value="8" {{ $birthMonth == 8 ? 'selected' : '' }}>August</option>
+                                <option value="9" {{ $birthMonth == 9 ? 'selected' : '' }}>September</option>
+                                <option value="10" {{ $birthMonth == 10 ? 'selected' : '' }}>Oktober</option>
+                                <option value="11" {{ $birthMonth == 11 ? 'selected' : '' }}>November</option>
+                                <option value="12" {{ $birthMonth == 12 ? 'selected' : '' }}>Dezember</option>
+                            </select>
+                            <select id="quick_birth_year" name="birth_year" class="block w-24 rounded-lg border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none px-2 py-2">
+                                <option value="">Jahr</option>
+                                @php
+                                    $currentYear = date('Y');
+                                    $minYear = $currentYear - 100;
+                                @endphp
+                                @for($year = $currentYear - 13; $year >= $minYear; $year--)
+                                    <option value="{{ $year }}" {{ $birthYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div id="birthdate-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center gap-3">
+                        <button 
+                            type="submit" 
+                            id="save-quick-profile-btn"
+                            class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <i class="ri-save-line text-lg"></i>
+                            <span>Speichern</span>
+                        </button>
+                        <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-2 text-blue-700 hover:text-blue-900 underline font-semibold transition-colors">
+                            <i class="ri-user-settings-line text-lg"></i>
+                            <span>Zum Profil</span>
+                        </a>
+                    </div>
+                    <div id="quick-profile-success" class="text-green-600 text-sm mt-3 text-center hidden font-semibold"></div>
+                </form>
+            </div>
+
+            <div id="profile-unlocked-message" class="px-6 py-4 rounded-2xl relative mb-6 text-center {{ $showUnlockedMessage && $hasAppointment ? '' : 'hidden' }}" role="alert" style="background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); border: 2px solid #0EA5E9; color: #0C4A6E;">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <i class="ri-mail-send-line text-3xl" style="color: #0EA5E9;"></i>
+                    <h3 class="text-xl font-bold">Dein Stromtarif wurde optimiert!</h3>
+                </div>
+                <p class="text-base font-semibold mb-1">Bitte schaue in deine E-Mails.</p>
+                <p class="text-base font-semibold">Dort kannst du ganz einfach den Auftrag unterschreiben und einreichen.</p>
+            </div>
+            <div id="profile-almost-done-message" class="fixed inset-0 flex items-center justify-center z-40 {{ $showAlmostDoneMessage && !$hasAppointment ? '' : 'hidden' }}">
+                <div class="px-6 py-4 rounded-2xl relative text-center max-w-2xl mx-4" role="alert" style="background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); border: 2px solid #0EA5E9; color: #0C4A6E;">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <i class="ri-mail-send-line text-3xl" style="color: #0EA5E9;"></i>
+                        <h3 class="text-xl font-bold">Fast geschafft!</h3>
+                    </div>
+                    <p class="text-base font-semibold mb-1">Dein Stromtarif wurde optimiert.</p>
+                    <p class="text-base font-semibold">Bitte schaue in deine E-Mails. Wir benötigen noch deine Unterschrift.</p>
+                </div>
+            </div>
 
             <!-- Angebot Container -->
-                <div id="offer-container" style="display: {{ ($showOfferAcceptedMessage || $showUnlockedMessage || $showAlmostDoneMessage) ? 'none' : 'block' }};">
+                <div id="offer-container" style="display: {{ ($showOfferAcceptedMessage || $showUnlockedMessage || $showAlmostDoneMessage || $showCompletedMessage) ? 'none' : 'block' }};">
                 <!-- Header -->
                 <div class="text-center mb-8">
                     <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 mb-3 flex items-center justify-center gap-3">
@@ -581,6 +707,40 @@
         }
     </style>
 
+    <!-- IBAN Info Modal -->
+    <div id="ibanInfoModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative">
+            <button onclick="closeIbanInfoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="ri-close-line text-2xl"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="ri-information-line text-2xl text-blue-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Informationen zur IBAN</h2>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <p class="text-base">
+                    Die <strong>IBAN-Nummer</strong> wird nur zur <strong>Vertragserfassung</strong> benötigt.
+                </p>
+                <p class="text-base">
+                    Die Eingabe der IBAN stellt <strong>noch keinen finalen Vertragsabschluss</strong> dar.
+                </p>
+                <p class="text-base text-gray-600 italic">
+                    Sie können Ihre IBAN jederzeit in Ihrem Profil ändern oder entfernen.
+                </p>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button 
+                    onclick="closeIbanInfoModal()" 
+                    class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                    Verstanden
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Appointment Modal -->
     <div id="appointmentModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative">
@@ -609,6 +769,9 @@
 
     <script>
         function acceptOffer() {
+            // Verstecke vorherige Meldungen
+            document.getElementById('iban-warning-message').classList.add('hidden');
+            
             fetch('{{ route('offer.accept') }}', {
                     method: 'POST',
                     headers: {
@@ -622,17 +785,88 @@
                     // Seite neu laden, damit die Informationsmeldung angezeigt wird
                     location.reload();
                 } else {
-                    alert(data.message || 'Fehler beim Annehmen des Angebots');
-                    if (data.message && data.message.includes('IBAN')) {
-                        window.location.href = '{{ route('profile.edit') }}';
-                        }
+                    // Zeige die schöne Warnmeldung statt Alert
+                    if (data.message && (data.message.includes('IBAN') || data.message.includes('Geburtsdatum'))) {
+                        const warningMessage = document.getElementById('iban-warning-message');
+                        warningMessage.classList.remove('hidden');
+                        // Scroll zur Meldung
+                        warningMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        alert(data.message || 'Fehler beim Annehmen des Angebots');
                     }
+                }
                 })
                 .catch(error => {
                 console.error('Error:', error);
                 alert('Fehler beim Annehmen des Angebots');
             });
         }
+
+        // Quick Profile Form Handler
+        document.getElementById('quick-profile-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const submitBtn = document.getElementById('save-quick-profile-btn');
+            const successMsg = document.getElementById('quick-profile-success');
+            const ibanError = document.getElementById('iban-error');
+            const birthdateError = document.getElementById('birthdate-error');
+            
+            // Reset errors
+            ibanError.classList.add('hidden');
+            birthdateError.classList.add('hidden');
+            successMsg.classList.add('hidden');
+            
+            // Get form data
+            const formData = new FormData(form);
+            
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="ri-loader-4-line text-lg animate-spin"></i> <span>Speichere...</span>';
+            
+            fetch('{{ route('profile.quick-update') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMsg.textContent = 'Erfolgreich gespeichert! Das Angebot wird jetzt angenommen...';
+                    successMsg.classList.remove('hidden');
+                    
+                    // Automatisch das Angebot annehmen
+                    setTimeout(() => {
+                        acceptOffer();
+                    }, 1000);
+                } else {
+                    // Handle validation errors
+                    if (data.errors) {
+                        if (data.errors.iban) {
+                            ibanError.textContent = data.errors.iban[0];
+                            ibanError.classList.remove('hidden');
+                        }
+                        if (data.errors.birth_day || data.errors.birth_month || data.errors.birth_year) {
+                            birthdateError.textContent = 'Bitte wählen Sie ein gültiges Geburtsdatum aus.';
+                            birthdateError.classList.remove('hidden');
+                        }
+                    } else {
+                        alert(data.message || 'Fehler beim Speichern');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="ri-save-line text-lg"></i> <span>Speichern</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Fehler beim Speichern. Bitte versuchen Sie es erneut.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="ri-save-line text-lg"></i> <span>Speichern</span>';
+            });
+        });
 
         function openAppointmentModal() {
             @if($hasUpcomingAppointment ?? false)
@@ -798,6 +1032,21 @@
         document.getElementById('appointmentModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeAppointmentModal();
+            }
+        });
+
+        // IBAN Info Modal Functions
+        function openIbanInfoModal() {
+            document.getElementById('ibanInfoModal').classList.remove('hidden');
+        }
+
+        function closeIbanInfoModal() {
+            document.getElementById('ibanInfoModal').classList.add('hidden');
+        }
+
+        document.getElementById('ibanInfoModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeIbanInfoModal();
             }
         });
     </script>

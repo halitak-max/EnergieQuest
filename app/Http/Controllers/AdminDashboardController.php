@@ -299,4 +299,50 @@ class AdminDashboardController extends Controller
             'message' => 'Termin erfolgreich gelöscht',
         ]);
     }
+
+    public function toggleCompleted(Request $request, User $user)
+    {
+        $request->validate([
+            'completed' => 'required',
+        ]);
+
+        // Konvertiere zu boolean
+        $completed = filter_var($request->completed, FILTER_VALIDATE_BOOLEAN);
+
+        $user->update([
+            'completed' => $completed
+        ]);
+
+        // Wenn als erledigt markiert, setze Session-Variable für die Glückwunsch-Meldung
+        if ($completed) {
+            session()->put('show_completed_message_' . $user->id, true);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $completed ? 'Als erledigt markiert' : 'Erledigt-Status entfernt',
+            'completed' => $completed,
+        ]);
+    }
+
+    public function destroyUser(User $user)
+    {
+        // Lösche alle zugehörigen Daten
+        $user->uploads()->delete();
+        $user->appointments()->delete();
+        
+        // Lösche Referrals, bei denen der User der Referrer ist
+        Referral::where('referrer_id', $user->id)->delete();
+        
+        // Lösche Referrals, bei denen der User der referred User ist
+        Referral::where('referred_user_id', $user->id)->delete();
+        
+        // Lösche den User
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User erfolgreich gelöscht',
+        ]);
+    }
 }
