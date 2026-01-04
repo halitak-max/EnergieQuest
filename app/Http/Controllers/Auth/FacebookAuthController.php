@@ -17,6 +17,7 @@ class FacebookAuthController extends Controller
     public function redirectToFacebook(): RedirectResponse
     {
         return Socialite::driver('facebook')
+            ->scopes(['email'])
             ->redirectUrl(route('auth.facebook.callback'))
             ->redirect();
     }
@@ -29,6 +30,22 @@ class FacebookAuthController extends Controller
         try {
             $facebookUser = Socialite::driver('facebook')->user();
             
+            // Debug: Logge die erhaltenen Daten
+            \Log::info('Facebook OAuth User Data', [
+                'email' => $facebookUser->getEmail(),
+                'name' => $facebookUser->getName(),
+                'id' => $facebookUser->getId(),
+            ]);
+            
+            // Prüfe ob E-Mail vorhanden ist
+            if (!$facebookUser->getEmail()) {
+                \Log::error('Facebook OAuth: Keine E-Mail-Adresse erhalten');
+                return redirect()->route('login')->with('error', 'Facebook hat keine E-Mail-Adresse zurückgegeben. Bitte versuchen Sie es erneut oder registrieren Sie sich manuell.');
+            }
+            
+            // Prüfe ob Name vorhanden ist, sonst verwende E-Mail
+            $name = $facebookUser->getName() ?: $facebookUser->getEmail();
+            
             // Prüfe ob User bereits existiert
             $user = User::where('email', $facebookUser->getEmail())->first();
 
@@ -38,28 +55,52 @@ class FacebookAuthController extends Controller
                     $user->facebook_id = $facebookUser->getId();
                     $user->save();
                 }
-                Auth::login($user, true);
+                \Log::info('Facebook OAuth: Bestehender User gefunden', ['user_id' => $user->id]);
             } else {
                 // Neuer User - erstelle Account
-                $user = User::create([
-                    'name' => $facebookUser->getName(),
-                    'email' => $facebookUser->getEmail(),
-                    'email_verified_at' => now(), // Facebook E-Mails sind bereits verifiziert
-                    'password' => null, // OAuth-User haben kein Passwort
-                    'facebook_id' => $facebookUser->getId(),
-                ]);
-
-                // Der referral_code wird automatisch im boot() des Models generiert
-                Auth::login($user, true);
+                try {
+                    $user = User::create([
+                        'name' => $name,
+                        'email' => $facebookUser->getEmail(),
+                        'email_verified_at' => now(), // Facebook E-Mails sind bereits verifiziert
+                        'password' => null, // OAuth-User haben kein Passwort
+                        'facebook_id' => $facebookUser->getId(),
+                    ]);
+                    \Log::info('Facebook OAuth: Neuer User erstellt', ['user_id' => $user->id]);
+                } catch (\Exception $e) {
+                    \Log::error('Facebook OAuth: Fehler beim Erstellen des Users', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    return redirect()->route('login')->with('error', 'Fehler beim Erstellen des Benutzerkontos: ' . $e->getMessage());
+                }
             }
 
+            // User einloggen
+            Auth::login($user, true);
+            
+            // Session explizit speichern, bevor wir regenerieren
+            $request->session()->save();
+            
             // Session regenerieren (wichtig für Sicherheit)
             $request->session()->regenerate();
+            
+            // Nach der Regenerierung nochmal speichern
+            $request->session()->save();
+            
+            \Log::info('Facebook OAuth: User eingeloggt und Session regeneriert', [
+                'user_id' => $user->id,
+                'authenticated' => Auth::check()
+            ]);
 
             // Direkt zur Home-Seite weiterleiten
             return redirect()->route('home');
         } catch (\Exception $e) {
-            \Log::error('Facebook OAuth Error: ' . $e->getMessage());
+            \Log::error('Facebook OAuth Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             return redirect()->route('login')->with('error', 'Fehler beim Anmelden mit Facebook. Bitte versuchen Sie es erneut.');
         }
     }

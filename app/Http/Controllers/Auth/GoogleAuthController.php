@@ -55,8 +55,7 @@ class GoogleAuthController extends Controller
                     $user->google_id = $googleUser->getId();
                     $user->save();
                 }
-                Auth::login($user, true);
-                \Log::info('Google OAuth: Bestehender User eingeloggt', ['user_id' => $user->id]);
+                \Log::info('Google OAuth: Bestehender User gefunden', ['user_id' => $user->id]);
             } else {
                 // Neuer User - erstelle Account
                 try {
@@ -75,13 +74,24 @@ class GoogleAuthController extends Controller
                     ]);
                     return redirect()->route('login')->with('error', 'Fehler beim Erstellen des Benutzerkontos: ' . $e->getMessage());
                 }
-
-                // Der referral_code wird automatisch im boot() des Models generiert
-                Auth::login($user, true);
             }
 
+            // User einloggen
+            Auth::login($user, true);
+            
+            // Session explizit speichern, bevor wir regenerieren
+            $request->session()->save();
+            
             // Session regenerieren (wichtig für Sicherheit)
             $request->session()->regenerate();
+            
+            // Nach der Regenerierung nochmal speichern
+            $request->session()->save();
+            
+            \Log::info('Google OAuth: User eingeloggt und Session regeneriert', [
+                'user_id' => $user->id,
+                'authenticated' => Auth::check()
+            ]);
 
             // Direkt zur Home-Seite weiterleiten
             return redirect()->route('home');
