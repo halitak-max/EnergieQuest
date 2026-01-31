@@ -25,7 +25,7 @@ Route::get('/', function () {
 
 Route::view('/datenschutz', 'datenschutz')->name('datenschutz');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [DashboardController::class, 'index'])->name('home');
     Route::view('/spielregeln', 'spielregeln')->name('spielregeln');
     

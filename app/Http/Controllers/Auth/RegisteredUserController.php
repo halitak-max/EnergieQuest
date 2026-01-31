@@ -80,16 +80,11 @@ class RegisteredUserController extends Controller
             }
         }
 
-        Auth::login($user);
+        // E-Mail-Verifizierungs-E-Mail senden BEVOR der User eingeloggt wird
+        event(new Registered($user));
 
-        // Versuche E-Mail-Verifizierungs-E-Mail zu senden
-        // Fehler werden abgefangen, damit die Registrierung trotzdem erfolgreich ist
-        try {
-            event(new Registered($user));
-        } catch (\Exception $e) {
-            // Logge den Fehler, aber lasse die Registrierung trotzdem erfolgreich sein
-            \Log::error('Fehler beim Versenden der Verifizierungs-E-Mail: ' . $e->getMessage());
-        }
+        // User einloggen
+        Auth::login($user);
 
         // Weiterleitung zur E-Mail-Verifizierungsseite
         return redirect()->route('verification.notice')->with('status', 'registered');

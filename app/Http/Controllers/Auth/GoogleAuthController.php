@@ -50,11 +50,24 @@ class GoogleAuthController extends Controller
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if ($user) {
-                // User existiert bereits - aktualisiere google_id falls noch nicht gesetzt
+                // User existiert bereits - aktualisiere google_id und markiere E-Mail als verifiziert
+                $needsUpdate = false;
+                
                 if (empty($user->google_id)) {
                     $user->google_id = $googleUser->getId();
+                    $needsUpdate = true;
+                }
+                
+                // Markiere E-Mail als verifiziert (Google E-Mails sind bereits verifiziert)
+                if (empty($user->email_verified_at)) {
+                    $user->email_verified_at = now();
+                    $needsUpdate = true;
+                }
+                
+                if ($needsUpdate) {
                     $user->save();
                 }
+                
                 \Log::info('Google OAuth: Bestehender User gefunden', ['user_id' => $user->id]);
             } else {
                 // Neuer User - erstelle Account
@@ -79,21 +92,16 @@ class GoogleAuthController extends Controller
             // User einloggen
             Auth::login($user, true);
             
-            // Session explizit speichern, bevor wir regenerieren
-            $request->session()->save();
-            
             // Session regenerieren (wichtig für Sicherheit)
             $request->session()->regenerate();
             
-            // Nach der Regenerierung nochmal speichern
-            $request->session()->save();
-            
             \Log::info('Google OAuth: User eingeloggt und Session regeneriert', [
                 'user_id' => $user->id,
+                'email_verified' => $user->hasVerifiedEmail(),
                 'authenticated' => Auth::check()
             ]);
 
-            // Direkt zur Home-Seite weiterleiten
+            // Direkt zum Dashboard weiterleiten (Google-User sind bereits verifiziert)
             return redirect()->route('home');
         } catch (\Exception $e) {
             \Log::error('Google OAuth Error: ' . $e->getMessage(), [
