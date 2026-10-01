@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (! Schema::hasColumn('users', 'is_admin')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('is_admin');
         });
